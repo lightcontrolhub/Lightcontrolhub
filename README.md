@@ -9,7 +9,7 @@ André Filipe:22302220
 Breno Drumond:22301178
 Pedro Arthur:2240
 
-v1.0: 
+v1.0: criamos um verificador de 2 etapas para efetuar o cadastro.
 
 
 
