@@ -1,0 +1,7 @@
+void publishStatus() {
+  // Publica estado e lastSeen
+  unsigned long now = millis();
+  String path = "/devices/" + String(DEVICE_ID) + "/status";
+  String body = String("{\"led13\":\"") + (ledOn ? "on" : "off") + "\",\"lastSeenMs\":" + now + "}";
+  dbPatch(path, body);
+}
