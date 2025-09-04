@@ -8,7 +8,19 @@
   <link rel="stylesheet" href="formulario.css">
 </head>
 <body>
-  <div id="login-box">
+
+<ul>
+  
+  <li  class="contato-utilitarios"><a href="index.html">Home</a></li>
+  <li class="contato-utilitarios"><a href="contato.html">Contato</a></li>
+  <li class="cadastro"><a href="signup.html">SignUp</a></li>
+  <li class="cadastro"><a href="login.html">Login</a></li>
+  
+</ul>
+
+
+
+ <div id="login-box">
     <div class="left">
       <h1>Login</h1>
       <input type="text" id="email" name="email" placeholder="E-mail" />
@@ -16,14 +28,14 @@
       <input type="submit" id="login" value="Login" />
     </div>
     <div class="right">
-      <span class="loginwith">Sign in with<br />social network</span>
-      <button class="social-signin facebook">Log in with Facebook</button>
-      <button class="social-signin twitter">Log in with Twitter</button>
-      <button class="social-signin google">Log in with Google+</button>
-      <div class="or">OR</div>
+       <div class="or">OR</div>
+      <span class="loginwith">Não tem login?<br /> Vá para SignUp</span>
+      <button class="social-signin facebook" onclick="window.location.href='signup.html'">SignUp</button>
+      <span class="loginwith">Esqueceu sua senha?<br /> Vá para Redefinir Senha</span>
+      <button class="social-signin facebook" onclick="window.location.href='redefinir.html'">Redefinir Senha</button>
     </div>
   </div>
-  <script type="module" src="script.js">
+  <script type="module" src="login.js">
    
   </script>
   <!--comentario-->

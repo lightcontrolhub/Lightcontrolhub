@@ -1,10 +1,10 @@
-/* Estilização moderna do formulário */
+
 
 body {
   margin: 0;
   padding: 0;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background: linear-gradient(to right, #667eea, #764ba2);
+  background: linear-gradient(to right, #004759, #00B6D7, #356A78);
   height: 100vh;
   display: flex;
   justify-content: center;
@@ -89,8 +89,6 @@ button.social-signin {
 }
 
 button.facebook { background: #3b5998; }
-button.twitter { background: #55acee; }
-button.google { background: #dd4b39; }
 
 button.social-signin:hover {
   filter: brightness(1.1);
@@ -100,4 +98,39 @@ button.social-signin:hover {
   margin-top: 20px;
   font-weight: bold;
   color: #aaa;
+}
+
+ul {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: #2c2c2c;
+  position: fixed;
+  top: 0;
+  width: 100%;
+}
+
+li {
+  float: left;
+}
+
+li a {
+  display: block;
+  color: #ffffff;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+li a:hover {
+  background-color: #145D6C;
+}
+
+.cadastro {
+    float: right;
+}
+
+.contato-utilitarios {
+    float: left;
 }

@@ -18,29 +18,33 @@
 
     const loginBtn = document.getElementById('login');
 
-    loginBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+loginBtn.addEventListener('click', (e) => {
+  e.preventDefault();
+  const email = document.getElementById('email').value;
+  const password = document.getElementById('password').value;
 
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          const user = userCredential.user;
+  signInWithEmailAndPassword(auth, email, password)
+    .then((userCredential) => {
+      const user = userCredential.user;
 
-          if (!user.emailVerified) {
-            alert("Você precisa verificar seu e-mail antes de fazer login.");
-            signOut(auth);
-            return;
-          }
+      if (!user.emailVerified) {
+        alert("Você precisa verificar seu e-mail antes de fazer login.");
+        signOut(auth);
+        return;
+      }
 
-          const dt = new Date();
-          update(ref(database, 'users/' + user.uid), {
-            last_login: dt
-          });
+      const dt = new Date();
+      update(ref(database, 'users/' + user.uid), {
+        last_login: dt
+      });
 
-          alert('Login feito com sucesso!');
-        })
-        .catch((error) => {
-          alert(error.message);
-        });
+      alert('Login feito com sucesso!');
+      // redireciona para function.html depois do login
+      window.location.href = "function.html";
+    })
+    .catch((error) => {
+      alert(error.message);
     });
+});
+
+    

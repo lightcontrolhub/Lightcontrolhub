@@ -1,0 +1,28 @@
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <title>Redefinir Senha</title>
+  <link rel="stylesheet" href="redefinir.css">
+  <script type="module" src="redefinir.html">
+  
+  </script>
+</head>
+<body>
+<ul>
+  
+  <li  class="contato-utilitarios"><a href="index.html">Home</a></li>
+  <li  class="contato-utilitarios"><a href="contato-utilitarios">News</a></li>
+  <li class="contato-utilitarios"><a href="contato.html">Contato</a></li>
+  <li class="cadastro"><a href="signup.html">SignUp</a></li>
+  <li class="cadastro"><a href="login.html">Login</a></li>
+  
+</ul>
+
+  <form onsubmit="resetPassword(event)">
+    <h2>Redefinir Senha</h2>
+    <input type="email" id="email" placeholder="Digite seu email" required>
+    <button type="submit">Enviar link de redefinição</button>
+    <p id="mensagem"></p>
+  </form>
+</body>
+</html>
