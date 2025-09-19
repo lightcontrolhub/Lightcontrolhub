@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Config do Firebase
+
 const firebaseConfig = {
   apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
   authDomain: "teste-9142b.firebaseapp.com",
@@ -12,22 +12,21 @@ const firebaseConfig = {
   appId: "1:758452370683:web:b77f3d0989725c51cb045e"
 };
 
-// Inicializa Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ID do Arduino
+
 const deviceId = "dispositivo-do-breno";
 
-// ===== Funções do Model =====
 export function setLedMode(mode) {
-  update(ref(db, "devices/" + deviceId + "/config"), {
-    led13Mode: mode
-  });
+  console.log("Enviando para Firebase:", mode);
+  return set(ref(db, `devices/${deviceId}/config/led13Mode`), mode)
+    .then(() => console.log(" Gravado com sucesso"))
+    .catch((err) => console.error(" Erro ao gravar:", err));
 }
 
 export function listenLedMode(callback) {
-  onValue(ref(db, "devices/" + deviceId + "/config/led13Mode"), (snapshot) => {
+  onValue(ref(db, `devices/${deviceId}/config/led13Mode`), (snapshot) => {
     callback(snapshot.val());
   });
 }
