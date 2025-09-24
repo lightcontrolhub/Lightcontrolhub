@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Completo - Cadastro</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            border-radius: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background: #059669;
+        }
+        button:disabled {
+            background: #6b7280;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+            min-height: 50px;
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.3);
+            border: 2px solid #10b981;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.3);
+            border: 2px solid #ef4444;
+        }
+        .code {
+            font-size: 28px;
+            font-weight: bold;
+            text-align: center;
+            color: #fbbf24;
+            margin: 15px 0;
+            background: rgba(0,0,0,0.3);
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .step {
+            background: rgba(255,255,255,0.1);
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Teste Completo - Cadastro LightControlHub</h1>
+    
+    <!-- Passo 1: Cadastro -->
+    <div id="step1">
+        <h2>📝 Passo 1: Cadastro</h2>
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" value="gleison@cotemig.com.br" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Senha:</label>
+                <input type="password" id="password" value="minhasenha123" required>
+            </div>
+            <button type="submit" id="registerBtn">Criar Conta</button>
+        </form>
+    </div>
+    
+    <!-- Passo 2: Código de Verificação -->
+    <div id="step2" class="hidden">
+        <h2>📧 Passo 2: Código de Verificação</h2>
+        <div class="step">
+            <p>Código enviado para: <span id="emailSent"></span></p>
+            <div id="codeDisplay" class="code"></div>
+        </div>
+        <form id="verifyForm">
+            <div class="form-group">
+                <label for="code">Digite o código:</label>
+                <input type="text" id="code" maxlength="6" placeholder="123456" required>
+            </div>
+            <button type="submit" id="verifyBtn">Verificar Código</button>
+        </form>
+    </div>
+    
+    <!-- Passo 3: Sucesso -->
+    <div id="step3" class="hidden">
+        <h2>✅ Passo 3: Sucesso!</h2>
+        <div class="step success">
+            <p>Conta criada e verificada com sucesso!</p>
+            <p>Você está agora logado no sistema.</p>
+        </div>
+    </div>
+    
+    <div id="result" class="result"></div>
+    
+    <script>
+        let currentEmail = '';
+        let generatedCode = '';
+        
+        // Passo 1: Cadastro
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const resultDiv = document.getElementById('result');
+            const registerBtn = document.getElementById('registerBtn');
+            
+            try {
+                registerBtn.disabled = true;
+                registerBtn.textContent = '⏳ Criando conta...';
+                resultDiv.innerHTML = '⏳ Registrando usuário...';
+                resultDiv.className = 'result';
+                
+                // 1. Primeiro registra o usuário
+                const registerResponse = await fetch('api/auth.php?action=register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const registerData = await registerResponse.json();
+                
+                if (!registerData.success) {
+                    throw new Error(registerData.error || 'Erro no registro');
+                }
+                
+                resultDiv.innerHTML = '✅ Conta criada! Enviando código...';
+                
+                // 2. Depois envia o código de verificação
+                const codeResponse = await fetch('api/auth.php?action=send-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email })
+                });
+                
+                const codeData = await codeResponse.json();
+                
+                if (!codeData.success) {
+                    throw new Error(codeData.error || 'Erro ao enviar código');
+                }
+                
+                // Sucesso - mostra o código
+                generatedCode = codeData.debug.code;
+                currentEmail = email;
+                
+                document.getElementById('emailSent').textContent = email;
+                document.getElementById('codeDisplay').textContent = generatedCode;
+                document.getElementById('code').value = generatedCode; // Pré-preenche
+                
+                // Esconde passo 1, mostra passo 2
+                document.getElementById('step1').classList.add('hidden');
+                document.getElementById('step2').classList.remove('hidden');
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h3>📧 Código Enviado!</h3>
+                    <p><strong>Email:</strong> ${email}</p>
+                    <div class="code">CÓDIGO: ${generatedCode}</div>
+                    <p>O código foi preenchido automaticamente no campo abaixo.</p>
+                `;
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erro no Cadastro</h3>
+                    <p>${error.message}</p>
+                `;
+            } finally {
+                registerBtn.disabled = false;
+                registerBtn.textContent = 'Criar Conta';
+            }
+        });
+        
+        // Passo 2: Verificação
+        document.getElementById('verifyForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const code = document.getElementById('code').value;
+            const resultDiv = document.getElementById('result');
+            const verifyBtn = document.getElementById('verifyBtn');
+            
+            try {
+                verifyBtn.disabled = true;
+                verifyBtn.textContent = '⏳ Verificando...';
+                resultDiv.innerHTML = '⏳ Verificando código...';
+                resultDiv.className = 'result';
+                
+                const response = await fetch('api/auth.php?action=verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: currentEmail, code })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Código inválido');
+                }
+                
+                // Sucesso!
+                document.getElementById('step2').classList.add('hidden');
+                document.getElementById('step3').classList.remove('hidden');
+                
+                resultDiv.className = 'result success';
+                resultDiv.innerHTML = `
+                    <h3>🎉 Verificação Concluída!</h3>
+                    <p>Sua conta foi criada e verificada com sucesso!</p>
+                    <p><strong>Email:</strong> ${currentEmail}</p>
+                    <p><strong>Status:</strong> Logado no sistema</p>
+                `;
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erro na Verificação</h3>
+                    <p>${error.message}</p>
+                `;
+            } finally {
+                verifyBtn.disabled = false;
+                verifyBtn.textContent = 'Verificar Código';
+            }
+        });
+    </script>
+</body>
+</html>

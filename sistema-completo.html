@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightControlHub - Login Direto</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💡</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <!-- Tela de Login Simples -->
+            <div id="loginScreen">
+                <h1 class="title">🏠 LightControlHub</h1>
+                <p style="text-align: center; margin-bottom: 2rem; opacity: 0.8;">Sistema de Controle Inteligente de Iluminação</p>
+                
+                <form id="quickLoginForm">
+                    <div class="form-group">
+                        <label for="email">Email:</label>
+                        <input type="email" id="email" value="gleison@cotemig.com.br" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Senha:</label>
+                        <input type="password" id="password" value="minhasenha123" required>
+                    </div>
+                    <button type="submit" class="btn">🔐 Entrar no Sistema</button>
+                </form>
+                
+                <div id="message" style="margin-top: 1rem;"></div>
+            </div>
+
+            <!-- Tela de Controle de Luz -->
+            <div id="lightControlScreen" style="display: none;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <h1 class="title" style="margin: 0;">💡 Minha Lâmpada</h1>
+                    <button id="logoutBtn" class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem; margin: 0;">Sair</button>
+                </div>
+                <p id="userEmail" class="text-center" style="opacity: 0.8; margin-bottom: 2rem; font-size: 0.9rem;"></p>
+                
+                <div class="light-container">
+                    <div id="lightIcon" class="light-icon off">💡</div>
+                    <div id="statusText" class="status-text">Desligada</div>
+                    <button id="lightToggle" class="btn toggle-btn off">Ligar</button>
+                </div>
+                
+                <div class="device-info" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                    <h3 style="margin: 0 0 1rem 0; font-size: 1rem;">📊 Status do Dispositivo</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                        <div>
+                            <strong>🔌 Estado:</strong>
+                            <div id="deviceStatus">Conectado</div>
+                        </div>
+                        <div>
+                            <strong>⚡ Potência:</strong>
+                            <div id="powerLevel">60W</div>
+                        </div>
+                        <div>
+                            <strong>🌡️ Temperatura:</strong>
+                            <div id="temperature">3000K</div>
+                        </div>
+                        <div>
+                            <strong>⏰ Tempo Ligada:</strong>
+                            <div id="uptime">00:00:00</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="loadingSpinner" class="loading" style="display: none; margin: 1rem auto;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isLightOn = false;
+        let uptimeSeconds = 0;
+        let uptimeInterval = null;
+        let currentUser = null;
+
+        // Login rápido
+        document.getElementById('quickLoginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('message');
+            
+            try {
+                messageEl.innerHTML = '<div class="message success">🔐 Fazendo login...</div>';
+                
+                // Simula login (em modo demo)
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                
+                currentUser = { email, password };
+                
+                // Esconde tela de login, mostra controle
+                document.getElementById('loginScreen').style.display = 'none';
+                document.getElementById('lightControlScreen').style.display = 'block';
+                document.getElementById('userEmail').textContent = email;
+                
+                messageEl.innerHTML = '<div class="message success">✅ Login realizado com sucesso!</div>';
+                
+            } catch (error) {
+                messageEl.innerHTML = `<div class="message error">❌ Erro: ${error.message}</div>`;
+            }
+        });
+
+        // Controle da lâmpada
+        document.addEventListener('click', function(e) {
+            if (e.target.id === 'lightToggle') {
+                toggleLight();
+            } else if (e.target.id === 'logoutBtn') {
+                logout();
+            }
+        });
+
+        async function toggleLight() {
+            const btn = document.getElementById('lightToggle');
+            const icon = document.getElementById('lightIcon');
+            const status = document.getElementById('statusText');
+            const loading = document.getElementById('loadingSpinner');
+            
+            try {
+                btn.disabled = true;
+                loading.style.display = 'block';
+                
+                // Simula chamada à API
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                isLightOn = !isLightOn;
+                
+                if (isLightOn) {
+                    // Liga a luz
+                    icon.className = 'light-icon on';
+                    icon.textContent = '💡';
+                    status.textContent = 'Ligada';
+                    btn.textContent = 'Desligar';
+                    btn.className = 'btn toggle-btn on';
+                    
+                    // Inicia contador de tempo
+                    uptimeSeconds = 0;
+                    startUptimeCounter();
+                    
+                } else {
+                    // Desliga a luz
+                    icon.className = 'light-icon off';
+                    icon.textContent = '💡';
+                    status.textContent = 'Desligada';
+                    btn.textContent = 'Ligar';
+                    btn.className = 'btn toggle-btn off';
+                    
+                    // Para contador de tempo
+                    stopUptimeCounter();
+                }
+                
+            } catch (error) {
+                alert('Erro ao controlar a lâmpada: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+
+        function startUptimeCounter() {
+            stopUptimeCounter(); // Para contador anterior se existir
+            uptimeInterval = setInterval(() => {
+                uptimeSeconds++;
+                updateUptime();
+            }, 1000);
+        }
+
+        function stopUptimeCounter() {
+            if (uptimeInterval) {
+                clearInterval(uptimeInterval);
+                uptimeInterval = null;
+            }
+            uptimeSeconds = 0;
+            updateUptime();
+        }
+
+        function updateUptime() {
+            const hours = Math.floor(uptimeSeconds / 3600);
+            const minutes = Math.floor((uptimeSeconds % 3600) / 60);
+            const seconds = uptimeSeconds % 60;
+            
+            const timeString = 
+                hours.toString().padStart(2, '0') + ':' +
+                minutes.toString().padStart(2, '0') + ':' +
+                seconds.toString().padStart(2, '0');
+                
+            document.getElementById('uptime').textContent = timeString;
+        }
+
+        function logout() {
+            if (confirm('Deseja realmente sair do sistema?')) {
+                // Para contador se estiver rodando
+                stopUptimeCounter();
+                
+                // Volta para tela de login
+                document.getElementById('lightControlScreen').style.display = 'none';
+                document.getElementById('loginScreen').style.display = 'block';
+                
+                // Reset
+                isLightOn = false;
+                currentUser = null;
+                
+                document.getElementById('message').innerHTML = '<div class="message success">👋 Logout realizado com sucesso!</div>';
+            }
+        }
+
+        // Inicia uptime se a luz já estiver ligada
+        updateUptime();
+    </script>
+</body>
+</html>

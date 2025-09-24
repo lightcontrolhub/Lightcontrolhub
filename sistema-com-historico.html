@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LightControlHub - Com Histórico</title>
+    <link rel="stylesheet" href="assets/css/main.css">
+    <style>
+        /* Estilos para Histórico */
+        .control-panel {
+            display: flex;
+            gap: 1rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+        
+        .control-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        .control-btn.primary {
+            background: #1d4ed8;
+        }
+        
+        /* Histórico */
+        .history-panel {
+            margin-top: 2rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 1.5rem;
+            display: none;
+        }
+        
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            border-left: 4px solid #666;
+        }
+        
+        .history-item.on {
+            border-left-color: #fbbf24;
+        }
+        
+        .history-item.off {
+            border-left-color: #6b7280;
+        }
+        
+        .history-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .history-details {
+            flex: 1;
+        }
+        
+        .history-action {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .history-time {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+        
+        .history-duration {
+            font-size: 0.8rem;
+            color: #fbbf24;
+            margin-top: 0.25rem;
+        }
+        
+        .no-history {
+            text-align: center;
+            opacity: 0.6;
+            padding: 2rem;
+        }
+        
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 90vw;
+            max-height: 90vh;
+            overflow-y: auto;
+            color: white;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 1rem;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        
+        .modal-close:hover {
+            opacity: 1;
+        }
+        
+        /* Stats */
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+        
+        .stat-card h4 {
+            margin: 0 0 0.5rem 0;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0.5rem 0;
+            color: #fbbf24;
+        }
+        
+        .stat-category, .stat-detail {
+            font-size: 0.8rem;
+            opacity: 0.8;
+            margin: 0;
+        }
+        
+        /* Timeline */
+        .timeline-section {
+            grid-column: 1 / -1;
+        }
+        
+        .timeline {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .timeline-period {
+            display: flex;
+            align-items: center;
+            margin: 0.5rem 0;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+        
+        .timeline-marker {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+        
+        .timeline-period.on .timeline-marker {
+            background: #fbbf24;
+        }
+        
+        .timeline-period.off .timeline-marker {
+            background: #6b7280;
+        }
+        
+        .timeline-content {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+        
+        .timeline-time {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+        
+        .timeline-duration {
+            font-size: 0.8rem;
+            color: #fbbf24;
+        }
+        
+        .timeline-status {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+        
+        /* Report */
+        .report-container > div {
+            margin-bottom: 2rem;
+        }
+        
+        .day-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+        
+        .recommendation {
+            padding: 1rem;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+        }
+        
+        .recommendation.high {
+            background: rgba(239, 68, 68, 0.2);
+            border-left: 4px solid #ef4444;
+        }
+        
+        .recommendation.medium {
+            background: rgba(251, 191, 36, 0.2);
+            border-left: 4px solid #fbbf24;
+        }
+        
+        .recommendation.low {
+            background: rgba(34, 197, 94, 0.2);
+            border-left: 4px solid #22c55e;
+        }
+        
+        /* Loading */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: white;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #22c55e;
+            color: white;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            z-index: 1001;
+            animation: slideIn 0.3s ease;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .device-info {
+            margin-top: 1rem;
+        }
+        
+        #lastUpdated {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .control-panel {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .stats-container {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .modal-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h1 class="title" style="margin: 0;">💡 SmartLight Pro</h1>
+                <button id="logoutBtn" class="btn btn-secondary" style="width: auto; padding: 0.5rem 1rem; margin: 0;">Sair</button>
+            </div>
+            
+            <p class="text-center" style="opacity: 0.8; margin-bottom: 2rem;">
+                Sistema Inteligente com Histórico Completo
+            </p>
+            
+            <!-- Controle Principal -->
+            <div class="light-container">
+                <div id="lightIcon" class="light-icon off">💡</div>
+                <div id="statusText" class="status-text">Desligada</div>
+                <button id="lightToggle" class="btn toggle-btn off">Ligar</button>
+            </div>
+            
+            <div id="lastUpdated"></div>
+            
+            <!-- Painel de Controles -->
+            <div class="control-panel">
+                <button id="showHistory" class="control-btn">📊 Histórico</button>
+                <button id="showStats" class="control-btn">📈 Estatísticas</button>
+                <button id="showReport" class="control-btn primary">📋 Relatório</button>
+                <button id="refreshHistory" class="control-btn">🔄 Atualizar</button>
+            </div>
+            
+            <!-- Painel de Histórico -->
+            <div id="historyPanel" class="history-panel">
+                <div class="history-header">
+                    <h3 style="margin: 0;">📋 Histórico Recente</h3>
+                    <span style="font-size: 0.9rem; opacity: 0.7;">Últimas 5 mudanças</span>
+                </div>
+                <div id="historyList">
+                    <p class="no-history">Carregando histórico...</p>
+                </div>
+            </div>
+            
+            <div id="loadingSpinner" class="loading" style="display: none; margin: 1rem auto;"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Simulação do sistema com histórico
+        let isLightOn = false;
+        let history = [];
+        let currentSession = null;
+        
+        // Mock data para demonstração
+        function generateMockHistory() {
+            const now = Date.now();
+            const mockHistory = [];
+            
+            // Gera alguns eventos do passado
+            for (let i = 0; i < 8; i++) {
+                const timestamp = now - (i * 2 * 60 * 60 * 1000); // A cada 2 horas
+                const state = i % 2 === 0 ? 'off' : 'on';
+                const previousState = state === 'on' ? 'off' : 'on';
+                
+                mockHistory.push({
+                    id: `change_${timestamp}_${Math.random().toString(36).substr(2, 9)}`,
+                    lightId: 'dispositivo-do-breno',
+                    fromState: previousState,
+                    toState: state,
+                    timestamp,
+                    timestampFormatted: new Date(timestamp).toLocaleString('pt-BR'),
+                    userId: 'gleison@cotemig.com.br',
+                    duration: state === 'off' ? 1.5 * 60 * 60 * 1000 : null, // 1.5h quando desliga
+                    durationFormatted: state === 'off' ? '1h 30m' : null,
+                    actionDescription: `${state === 'on' ? 'Ligou' : 'Desligou'} às ${new Date(timestamp).toLocaleTimeString('pt-BR')}`
+                });
+            }
+            
+            return mockHistory.sort((a, b) => b.timestamp - a.timestamp);
+        }
+        
+        history = generateMockHistory();
+        
+        // Event Listeners
+        document.getElementById('lightToggle').addEventListener('click', toggleLight);
+        document.getElementById('showHistory').addEventListener('click', toggleHistoryView);
+        document.getElementById('refreshHistory').addEventListener('click', loadRecentHistory);
+        document.getElementById('showStats').addEventListener('click', showDailyStats);
+        document.getElementById('showReport').addEventListener('click', showWeeklyReport);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+        
+        async function toggleLight() {
+            const btn = document.getElementById('lightToggle');
+            const icon = document.getElementById('lightIcon');
+            const status = document.getElementById('statusText');
+            const loading = document.getElementById('loadingSpinner');
+            
+            try {
+                btn.disabled = true;
+                loading.style.display = 'block';
+                
+                // Simula delay da API
+                await new Promise(resolve => setTimeout(resolve, 800));
+                
+                const previousState = isLightOn ? 'on' : 'off';
+                const newState = isLightOn ? 'off' : 'on';
+                
+                // Calcula duração se estava ligada
+                let duration = null;
+                let durationFormatted = null;
+                if (currentSession && newState === 'off') {
+                    duration = Date.now() - currentSession.startTime;
+                    durationFormatted = formatDuration(duration);
+                }
+                
+                // Registra no histórico
+                const change = {
+                    id: `change_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+                    lightId: 'dispositivo-do-breno',
+                    fromState: previousState,
+                    toState: newState,
+                    timestamp: Date.now(),
+                    timestampFormatted: new Date().toLocaleString('pt-BR'),
+                    userId: 'gleison@cotemig.com.br',
+                    duration,
+                    durationFormatted,
+                    actionDescription: `${newState === 'on' ? 'Ligou' : 'Desligou'} às ${new Date().toLocaleTimeString('pt-BR')}${durationFormatted ? ` (ficou ligada ${durationFormatted})` : ''}`
+                };
+                
+                history.unshift(change);
+                
+                // Atualiza estado
+                isLightOn = newState === 'on';
+                
+                if (isLightOn) {
+                    // Liga a luz
+                    icon.className = 'light-icon on';
+                    status.textContent = 'Ligada';
+                    btn.textContent = 'Desligar';
+                    btn.className = 'btn toggle-btn on';
+                    currentSession = { startTime: Date.now() };
+                } else {
+                    // Desliga a luz
+                    icon.className = 'light-icon off';
+                    status.textContent = 'Desligada';
+                    btn.textContent = 'Ligar';
+                    btn.className = 'btn toggle-btn off';
+                    currentSession = null;
+                }
+                
+                // Atualiza última modificação
+                document.getElementById('lastUpdated').textContent = 
+                    `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+                
+                // Mostra mensagem de sucesso
+                const message = `💡 Lâmpada ${newState === 'on' ? 'ligada' : 'desligada'}`;
+                const durationMsg = durationFormatted ? ` (estava ligada ${durationFormatted})` : '';
+                showSuccessMessage(message + durationMsg);
+                
+                // Atualiza histórico se visível
+                if (document.getElementById('historyPanel').style.display === 'block') {
+                    loadRecentHistory();
+                }
+                
+            } catch (error) {
+                alert('Erro ao controlar a lâmpada: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                loading.style.display = 'none';
+            }
+        }
+        
+        function toggleHistoryView() {
+            const panel = document.getElementById('historyPanel');
+            const isVisible = panel.style.display === 'block';
+            
+            panel.style.display = isVisible ? 'none' : 'block';
+            
+            if (!isVisible) {
+                loadRecentHistory();
+            }
+        }
+        
+        function loadRecentHistory() {
+            const historyContainer = document.getElementById('historyList');
+            const recentHistory = history.slice(0, 5);
+            
+            if (recentHistory.length === 0) {
+                historyContainer.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
+                return;
+            }
+            
+            const historyHTML = recentHistory.map(item => `
+                <div class="history-item ${item.toState}">
+                    <div class="history-icon">
+                        ${item.toState === 'on' ? '💡' : '🌙'}
+                    </div>
+                    <div class="history-details">
+                        <div class="history-action">${item.actionDescription}</div>
+                        <div class="history-time">${item.timestampFormatted}</div>
+                        ${item.durationFormatted ? `<div class="history-duration">Duração: ${item.durationFormatted}</div>` : ''}
+                    </div>
+                </div>
+            `).join('');
+            
+            historyContainer.innerHTML = historyHTML;
+        }
+        
+        function showDailyStats() {
+            showLoadingOverlay('Calculando estatísticas...');
+            
+            setTimeout(() => {
+                const today = new Date();
+                const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                
+                // Filtra histórico do dia
+                const todayHistory = history.filter(h => h.timestamp >= startOfDay.getTime());
+                
+                // Calcula estatísticas
+                const totalChanges = todayHistory.length;
+                const onEvents = todayHistory.filter(h => h.toState === 'on').length;
+                const offEvents = todayHistory.filter(h => h.toState === 'off').length;
+                
+                // Calcula tempo total ligada
+                let totalOnTime = 0;
+                for (const change of todayHistory) {
+                    if (change.duration) {
+                        totalOnTime += change.duration;
+                    }
+                }
+                
+                // Se está ligada agora, adiciona tempo atual
+                if (isLightOn && currentSession) {
+                    totalOnTime += Date.now() - currentSession.startTime;
+                }
+                
+                const stats = {
+                    totalChanges,
+                    onEvents,
+                    offEvents,
+                    totalOnTime,
+                    totalOnTimeFormatted: formatDuration(totalOnTime),
+                    efficiency: {
+                        usagePercent: Math.round((totalOnTime / (24 * 60 * 60 * 1000)) * 10000) / 100,
+                        category: totalOnTime > 12 * 60 * 60 * 1000 ? 'Uso intensivo' : 
+                                 totalOnTime > 6 * 60 * 60 * 1000 ? 'Uso moderado' : 'Uso leve'
+                    },
+                    mostActiveHour: {
+                        hour: 14, // Simulado
+                        count: 3
+                    }
+                };
+                
+                displayStatsModal(stats);
+                hideLoadingOverlay();
+            }, 1500);
+        }
+        
+        function showWeeklyReport() {
+            showLoadingOverlay('Gerando relatório semanal...');
+            
+            setTimeout(() => {
+                const report = {
+                    summary: {
+                        totalOnTimeFormatted: '18h 30m',
+                        totalChanges: 42,
+                        onEvents: 21
+                    },
+                    dailyBreakdown: [
+                        { dayName: 'Segunda', totalOnTimeFormatted: '2h 15m', efficiency: { category: 'Uso leve' } },
+                        { dayName: 'Terça', totalOnTimeFormatted: '3h 45m', efficiency: { category: 'Uso moderado' } },
+                        { dayName: 'Quarta', totalOnTimeFormatted: '4h 20m', efficiency: { category: 'Uso moderado' } },
+                        { dayName: 'Quinta', totalOnTimeFormatted: '2h 10m', efficiency: { category: 'Uso leve' } },
+                        { dayName: 'Sexta', totalOnTimeFormatted: '3h 30m', efficiency: { category: 'Uso moderado' } },
+                        { dayName: 'Sábado', totalOnTimeFormatted: '1h 45m', efficiency: { category: 'Uso leve' } },
+                        { dayName: 'Domingo', totalOnTimeFormatted: '0h 45m', efficiency: { category: 'Uso esporádico' } }
+                    ],
+                    recommendations: [
+                        {
+                            type: 'energia',
+                            message: 'Considere usar lâmpadas LED de baixo consumo para economia de energia.',
+                            priority: 'medium'
+                        },
+                        {
+                            type: 'automacao',
+                            message: 'Padrão de uso consistente. Considere automação com horários.',
+                            priority: 'low'
+                        }
+                    ]
+                };
+                
+                displayReportModal(report);
+                hideLoadingOverlay();
+            }, 2000);
+        }
+        
+        function displayStatsModal(stats) {
+            const modal = createModal('Estatísticas Diárias', `
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <h4>⏰ Tempo Total Ligada</h4>
+                        <p class="stat-value">${stats.totalOnTimeFormatted}</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h4>🔄 Mudanças de Estado</h4>
+                        <p class="stat-value">${stats.totalChanges}</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h4>📊 Eficiência</h4>
+                        <p class="stat-value">${stats.efficiency.usagePercent}%</p>
+                        <p class="stat-category">${stats.efficiency.category}</p>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <h4>🕐 Horário Mais Ativo</h4>
+                        <p class="stat-value">${stats.mostActiveHour.hour}:00</p>
+                        <p class="stat-detail">${stats.mostActiveHour.count} mudanças</p>
+                    </div>
+                </div>
+            `);
+            
+            document.body.appendChild(modal);
+        }
+        
+        function displayReportModal(report) {
+            const modal = createModal('Relatório Semanal', `
+                <div class="report-container">
+                    <div class="report-summary">
+                        <h4>📊 Resumo da Semana</h4>
+                        <p>Tempo total ligada: <strong>${report.summary.totalOnTimeFormatted}</strong></p>
+                        <p>Mudanças: <strong>${report.summary.totalChanges}</strong></p>
+                        <p>Sessões: <strong>${report.summary.onEvents}</strong></p>
+                    </div>
+                    
+                    <div class="daily-breakdown">
+                        <h4>📅 Breakdown Diário</h4>
+                        ${report.dailyBreakdown.map(day => `
+                            <div class="day-item">
+                                <strong>${day.dayName}</strong>
+                                <span>${day.totalOnTimeFormatted}</span>
+                                <small>${day.efficiency.category}</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div class="recommendations">
+                        <h4>💡 Recomendações</h4>
+                        ${report.recommendations.map(rec => `
+                            <div class="recommendation ${rec.priority}">
+                                <strong>${rec.type.charAt(0).toUpperCase() + rec.type.slice(1)}</strong>
+                                <p>${rec.message}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `);
+            
+            document.body.appendChild(modal);
+        }
+        
+        // Utility functions
+        function createModal(title, content) {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${title}</h3>
+                        <button class="modal-close">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        ${content}
+                    </div>
+                </div>
+            `;
+            
+            modal.querySelector('.modal-close').addEventListener('click', () => {
+                modal.remove();
+            });
+            
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.remove();
+                }
+            });
+            
+            return modal;
+        }
+        
+        function showSuccessMessage(message) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'success-message';
+            messageDiv.textContent = message;
+            
+            document.body.appendChild(messageDiv);
+            
+            setTimeout(() => {
+                messageDiv.remove();
+            }, 3000);
+        }
+        
+        function showLoadingOverlay(message = 'Carregando...') {
+            const overlay = document.createElement('div');
+            overlay.id = 'loadingOverlay';
+            overlay.className = 'loading-overlay';
+            overlay.innerHTML = `
+                <div class="loading-spinner"></div>
+                <p>${message}</p>
+            `;
+            
+            document.body.appendChild(overlay);
+        }
+        
+        function hideLoadingOverlay() {
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) {
+                overlay.remove();
+            }
+        }
+        
+        function formatDuration(milliseconds) {
+            const seconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            
+            if (hours > 0) {
+                return `${hours}h ${minutes % 60}m`;
+            } else if (minutes > 0) {
+                return `${minutes}m ${seconds % 60}s`;
+            } else {
+                return `${seconds}s`;
+            }
+        }
+        
+        function logout() {
+            if (confirm('Deseja realmente sair do sistema?')) {
+                window.location.href = 'index.html';
+            }
+        }
+        
+        // Inicialização
+        document.getElementById('lastUpdated').textContent = 
+            `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+    </script>
+</body>
+</html>

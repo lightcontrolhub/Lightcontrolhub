@@ -1,13 +1,55 @@
-# LightControlHub - MVC Version
+# 💡 LightControlHub - Sistema Completo
 
-Sistema inteligente de controle de iluminação com arquitetura MVC, desenvolvido com tecnologias web modernas e Firebase.
+Sistema inteligente de controle de iluminação com arquitetura avançada, histórico completo e padrões de projeto profissionais.
 
-## 🚀 Características
+## 🏗️ Arquitetura do Sistema
 
-- **Arquitetura MVC**: Código organizado e escalável
-- **Interface Moderna**: Design responsivo e elegante
-- **Tempo Real**: Sincronização instantânea via Firebase
-- **Controle Remoto**: Acesse de qualquer lugar
+### 📁 Estrutura de Arquivos
+
+```
+/
+├── index.html                              # Landing page com autenticação
+├── test-api.html                           # Sistema básico MVC
+├── sistema-com-historico.html              # Sistema avançado com histórico
+├── README.md                               # Esta documentação
+├── 
+├── api/                                    # Backend PHP
+│   ├── auth.php                           # Autenticação
+│   ├── config.example.php                 # Configurações
+│   ├── debug.php                          # Ferramentas de debug
+│   └── index.php                          # API principal
+├── 
+├── assets/                                # Recursos estáticos
+│   ├── css/
+│   │   └── main.css                       # Estilos globais
+│   └── js/
+│       └── app.js                         # JavaScript principal
+├── 
+├── controllers/                           # Camada de Controle
+│   ├── AppController.js                   # Controle principal (MVC simples)
+│   ├── LightController.js                 # Controle de lâmpadas (MVC simples)
+│   └── LightControllerWithHistory.js      # Controle avançado (Repository Pattern)
+├── 
+├── models/                                # Camada de Modelo
+│   ├── AuthModel.js                       # Modelo de autenticação
+│   ├── EmailAuthModel.js                  # Autenticação por email
+│   ├── LightModel.js                      # Modelo básico de lâmpada
+│   └── MockAuthModel.js                   # Mock para testes
+├── 
+├── repositories/                          # Camada de Repositório
+│   ├── interfaces/
+│   │   └── ILightRepository.js            # Interface do repositório
+│   └── FirebaseLightRepository.js         # Implementação Firebase
+├── 
+├── services/                             # Camada de Serviço
+│   └── LightService.js                   # Lógica de negócio
+└── 
+└── views/                               # Camada de Visualização
+    ├── about.html                       # Página sobre
+    ├── contact.html                     # Página contato
+    ├── AuthView.js                      # View de autenticação
+    └── LightView.js                     # View de lâmpadas
+```
 - **Compatível IoT**: Funciona com dispositivos Arduino/ESP
 
 ## 📁 Estrutura do Projeto

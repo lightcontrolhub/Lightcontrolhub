@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Cadastro - LightControlHub</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3a8a, #3b82f6);
+            color: white;
+            border-radius: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        button {
+            background: #10b981;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+        }
+        button:hover {
+            background: #059669;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            background: rgba(255,255,255,0.1);
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid #10b981;
+        }
+        .error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+        }
+        .code {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: center;
+            color: #fbbf24;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Teste de Cadastro e Código</h1>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="usuario@teste.com" required>
+        </div>
+        <button type="submit">Enviar Código de Verificação</button>
+    </form>
+    
+    <div id="result" class="result" style="display: none;"></div>
+    
+    <script>
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                resultDiv.style.display = 'block';
+                resultDiv.innerHTML = '⏳ Enviando código...';
+                resultDiv.className = 'result';
+                
+                const response = await fetch('api/auth.php?action=send-code', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email: email })
+                });
+                
+                const data = await response.json();
+                console.log('Resposta completa:', data);
+                
+                if (data.success) {
+                    resultDiv.className = 'result success';
+                    resultDiv.innerHTML = `
+                        <h3>✅ Código Enviado com Sucesso!</h3>
+                        <p><strong>Email:</strong> ${data.debug.email}</p>
+                        <div class="code">CÓDIGO: ${data.debug.code}</div>
+                        <p><strong>Mensagem:</strong> ${data.message}</p>
+                        <p><em>${data.debug.note}</em></p>
+                    `;
+                } else {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = `
+                        <h3>❌ Erro</h3>
+                        <p>${data.error || 'Erro desconhecido'}</p>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Erro:', error);
+                resultDiv.className = 'result error';
+                resultDiv.innerHTML = `
+                    <h3>❌ Erro de Conexão</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

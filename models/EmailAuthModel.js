@@ -45,40 +45,46 @@ class EmailAuthModel {
   }
 
   async sendVerificationCode(email) {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    localStorage.setItem('verificationCode', JSON.stringify({ 
-      email, code, expires: Date.now() + 300000 
-    }));
-    
     try {
-      // Carrega EmailJS se não estiver carregado
-      if (!window.emailjs) {
-        await this.loadEmailJS();
+      // Usa a API backend para enviar código
+      const response = await fetch('api/auth.php?action=send-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email })
+      });
+      
+      const data = await response.json();
+      
+      if (data.success && data.debug && data.debug.code) {
+        // Modo debug - mostra o código na tela
+        return { 
+          success: true, 
+          message: data.message,
+          code: data.debug.code,
+          realEmail: false
+        };
       }
       
-      // Envia email real
-      await emailjs.send(
-        this.emailjsConfig.serviceId,
-        this.emailjsConfig.templateId,
-        {
-          to_email: email,
-          verification_code: code,
-          app_name: 'LightControlHub'
-        },
-        this.emailjsConfig.publicKey
-      );
+      return { 
+        success: true, 
+        message: data.message || 'Código enviado',
+        realEmail: true
+      };
+      
+    } catch (error) {
+      console.error('Erro na API:', error);
+      
+      // Fallback para sistema local
+      const code = Math.floor(100000 + Math.random() * 900000).toString();
+      localStorage.setItem('verificationCode', JSON.stringify({ 
+        email, code, expires: Date.now() + 300000 
+      }));
       
       return { 
         success: true, 
-        message: `Código enviado para ${email}`,
-        realEmail: true
-      };
-    } catch (error) {
-      console.error('Erro ao enviar email:', error);
-      // Fallback: mostra o código na tela
-      return { 
-        success: true, 
-        message: `Erro no email. Código: ${code}`,
+        message: `Fallback local. Código: ${code}`,
         code,
         realEmail: false
       };
@@ -100,18 +106,42 @@ class EmailAuthModel {
 
   async verifyCode(email, code) {
     await this.delay(300);
-    const stored = JSON.parse(localStorage.getItem('verificationCode') || 'null');
     
-    if (!stored || stored.email !== email || stored.expires < Date.now()) {
-      throw new Error('Código expirado');
+    try {
+      // Usa a API backend para verificar o código
+      const response = await fetch('api/auth.php?action=verify-code', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, code })
+      });
+      
+      const data = await response.json();
+      
+      if (!data.success) {
+        throw new Error(data.error || 'Erro na verificação');
+      }
+      
+      // Remove código local se existir
+      localStorage.removeItem('verificationCode');
+      return { success: true, verified: true };
+      
+    } catch (error) {
+      // Fallback para localStorage se API falhar
+      const stored = JSON.parse(localStorage.getItem('verificationCode') || 'null');
+      
+      if (!stored || stored.email !== email || stored.expires < Date.now()) {
+        throw new Error('Código expirado ou inválido');
+      }
+      
+      if (stored.code !== code) {
+        throw new Error('Código inválido');
+      }
+      
+      localStorage.removeItem('verificationCode');
+      return { success: true, verified: true };
     }
-    
-    if (stored.code !== code) {
-      throw new Error('Código inválido');
-    }
-    
-    localStorage.removeItem('verificationCode');
-    return { success: true, verified: true };
   }
 
   async verifyToken() {

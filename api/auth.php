@@ -74,6 +74,25 @@ class AuthAPI {
     }
     
     private function register($email, $password) {
+        // Modo DEBUG/MOCK - não usa Firebase real
+        if (FIREBASE_URL === 'https://SEU-PROJETO-default-rtdb.firebaseio.com') {
+            // Simula registro bem-sucedido
+            $userId = 'user_' . md5($email . time());
+            $token = 'token_' . md5($email . $password . time());
+            
+            return [
+                'success' => true,
+                'token' => $token,
+                'userId' => $userId,
+                'email' => $email,
+                'debug' => [
+                    'message' => 'Conta criada em modo debug',
+                    'note' => 'Configure o Firebase para funcionalidade completa'
+                ]
+            ];
+        }
+        
+        // Modo produção com Firebase
         $url = FIREBASE_AUTH_URL . ":signUp?key=" . $this->apiKey;
         $data = json_encode([
             'email' => $email,
@@ -116,6 +135,20 @@ class AuthAPI {
         // Gera código de 6 dígitos
         $code = sprintf('%06d', mt_rand(0, 999999));
         
+        // Verifica se Firebase está configurado corretamente
+        if (FIREBASE_URL === 'https://SEU-PROJETO-default-rtdb.firebaseio.com') {
+            // Modo DEBUG/MOCK - não tenta acessar Firebase
+            return [
+                'success' => true,
+                'message' => 'Código enviado (modo debug)',
+                'debug' => [
+                    'email' => $email,
+                    'code' => $code,
+                    'note' => 'Configure o Firebase para funcionalidade completa'
+                ]
+            ];
+        }
+        
         // Salva no Firebase (expira em 5 minutos)
         $url = FIREBASE_URL . "/verification_codes/" . md5($email) . ".json";
         $data = json_encode([
@@ -132,7 +165,11 @@ class AuthAPI {
             ]
         ]);
         
-        file_get_contents($url, false, $context);
+        $result = file_get_contents($url, false, $context);
+        
+        if ($result === false) {
+            throw new Exception('Erro ao salvar código no Firebase');
+        }
         
         // Em produção, enviar por email real
         return [
@@ -143,8 +180,32 @@ class AuthAPI {
     }
     
     private function verifyCode($email, $code) {
+        // Verifica se Firebase está configurado corretamente
+        if (FIREBASE_URL === 'https://SEU-PROJETO-default-rtdb.firebaseio.com') {
+            // Modo DEBUG/MOCK - aceita qualquer código de 6 dígitos
+            if (strlen($code) === 6 && is_numeric($code)) {
+                return [
+                    'success' => true, 
+                    'verified' => true,
+                    'debug' => [
+                        'message' => 'Código aceito em modo debug',
+                        'email' => $email,
+                        'code' => $code
+                    ]
+                ];
+            } else {
+                throw new Exception('Código deve ter 6 dígitos numéricos');
+            }
+        }
+        
+        // Modo produção com Firebase
         $url = FIREBASE_URL . "/verification_codes/" . md5($email) . ".json";
         $response = file_get_contents($url);
+        
+        if ($response === false) {
+            throw new Exception('Erro ao verificar código');
+        }
+        
         $data = json_decode($response, true);
         
         if (!$data || $data['expires'] < time()) {
