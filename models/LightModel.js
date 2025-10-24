@@ -1,3 +1,5 @@
+
+
 class LightModel {
   constructor(authModel) {
     this.firebaseUrl = 'https://teste-9142b-default-rtdb.firebaseio.com';
@@ -7,53 +9,74 @@ class LightModel {
     this.currentCallback = null;
   }
 
+  /**
+   * Set light state (on/off)
+   * @param {string} state - 'on' or 'off'
+   * @returns {Promise<object>} Result object
+   */
   async setLightState(state) {
+    if (!this.isValidState(state)) {
+      throw new Error('Invalid state: must be "on" or "off"');
+    }
+
     try {
-      // Atualiza config
-      const configUrl = `${this.firebaseUrl}/devices/${this.deviceId}/config/led13Mode.json`;
-      await fetch(configUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state)
-      });
-      
-      // Atualiza status
-      const statusUrl = `${this.firebaseUrl}/devices/${this.deviceId}/status/led13Mode.json`;
+      // Update config and status in parallel for better performance
       const statusValue = state === 'on' ? 'ligado' : 'desligado';
-      await fetch(statusUrl, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(statusValue)
-      });
-      
-      console.log(`Estado da luz alterado para: ${state}`);
+
+      await Promise.all([
+        this.repository.updateConfig(this.LED_PATH, state),
+        this.repository.updateStatus(this.LED_PATH, statusValue)
+      ]);
+
+      console.log(`Estado da luz alterado para:${state}`);
       return { success: true, state };
     } catch (error) {
-      console.error("Erro ao alterar estado da luz:", error);
+      console.error('Erro ao alterar estado da luz:', error);
       throw new Error(`Falha ao alterar estado: ${error.message}`);
     }
   }
 
-  // Método para escutar mudanças no estado da luz (polling)
+  /**
+   * Get current light state
+   * @returns {Promise<string>} Current state ('on' or 'off')
+   */
+  async getCurrentState() {
+    try {
+      const state = await this.repository.getConfig(this.LED_PATH);
+      return state || 'off';
+    } catch (error) {
+      console.error('Erro ao verificar estado:', error);
+      return 'off';
+    }
+  }
+
+  /**
+   * Start listening to light state changes (polling)
+   * @param {Function} callback - Callback function to receive state updates
+   */
   listenToLightState(callback) {
     this.currentCallback = callback;
-    
-    // Polling a cada 2 segundos
+
+    // Poll every 2 seconds
     this.pollInterval = setInterval(async () => {
       try {
         const state = await this.getCurrentState();
         callback(state);
       } catch (error) {
-        console.error("Erro ao verificar estado:", error);
+        console.error('Erro ao verificar estado:', error);
         callback(null, error);
       }
-    }, 2000);
-    
-    // Primeira verificação imediata
-    this.getCurrentState().then(callback).catch(error => callback(null, error));
+    }, this.POLL_INTERVAL_MS);
+
+    // Immediate first check
+    this.getCurrentState()
+      .then(callback)
+      .catch(error => callback(null, error));
   }
 
-  // Método para parar de escutar mudanças
+  /**
+   * Stop listening to state changes
+   */
   stopListening() {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
@@ -62,26 +85,13 @@ class LightModel {
     this.currentCallback = null;
   }
 
-  // Método para validar estado
+  /**
+   * Validate light state
+   * @param {string} state - State to validate
+   * @returns {boolean} True if valid
+   */
   isValidState(state) {
     return state === 'on' || state === 'off';
-  }
-
-  async getCurrentState() {
-    try {
-      const url = `${this.firebaseUrl}/devices/${this.deviceId}/config/led13Mode.json`;
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error('Erro ao conectar com Firebase');
-      }
-      
-      const state = await response.json();
-      return state || 'off';
-    } catch (error) {
-      console.error("Erro ao obter estado:", error);
-      return 'off';
-    }
   }
 }
 

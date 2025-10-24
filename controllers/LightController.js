@@ -2,11 +2,11 @@ import LightModel from '../models/LightModel.js';
 import LightView from '../views/LightView.js';
 
 class LightController {
-  constructor() {
-    this.model = new LightModel();
+  constructor(firebaseUrl, deviceId) {
+    this.model = new LightModel(firebaseUrl, deviceId);
     this.view = new LightView();
     this.isInitialized = false;
-    
+
     this.init();
   }
 
@@ -15,16 +15,16 @@ class LightController {
     try {
       // Configura listeners da view
       this.setupViewListeners();
-      
+
       // Configura listeners do model
       this.setupModelListeners();
-      
+
       // Carrega estado inicial
       await this.loadInitialState();
-      
+
       this.isInitialized = true;
       console.log('LightController inicializado com sucesso');
-      
+
     } catch (error) {
       console.error('Erro ao inicializar controller:', error);
       this.view.showError('Erro ao conectar com o sistema');
@@ -46,7 +46,7 @@ class LightController {
         this.view.showError('Erro de conexão');
         return;
       }
-      
+
       this.handleStateChange(state);
     });
   }
@@ -73,9 +73,9 @@ class LightController {
 
       // Envia comando para o model
       await this.model.setLightState(newState);
-      
+
       console.log(`Comando enviado: ${newState}`);
-      
+
     } catch (error) {
       console.error('Erro ao alterar estado da luz:', error);
       this.view.showError('Erro ao alterar estado da luz');
@@ -86,7 +86,7 @@ class LightController {
   // Manipula mudanças de estado vindas do Firebase
   handleStateChange(state) {
     console.log('Estado recebido:', state);
-    
+
     if (state === null || state === undefined) {
       this.view.showUnknownState();
       return;

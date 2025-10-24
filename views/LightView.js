@@ -7,80 +7,115 @@ class LightView {
       lightIcon: document.getElementById('lightIcon'),
       loadingSpinner: document.getElementById('loadingSpinner')
     };
-    
+
     this.currentState = null;
     this.isLoading = false;
+
+    this.stateConfig = {
+      on: {
+        buttonText: 'Desligar',
+        buttonClass: 'toggle-btn on',
+        indicatorClass: 'status-indicator on',
+        statusText: 'Ligada',
+        iconClass: 'light-icon on',
+        disabled: false
+      },
+      off: {
+        buttonText: 'Ligar',
+        buttonClass: 'toggle-btn off',
+        indicatorClass: 'status-indicator off',
+        statusText: 'Desligada',
+        iconClass: 'light-icon off',
+        disabled: false
+      },
+      unknown: {
+        buttonText: 'Conectando...',
+        buttonClass: 'toggle-btn unknown',
+        indicatorClass: 'status-indicator unknown',
+        statusText: 'Conectando...',
+        iconClass: 'light-icon unknown',
+        disabled: true
+      }
+    };
   }
 
-  // Renderiza o estado atual da luz
+  /**
+   * Apply state configuration to UI elements (DRY)
+   * @param {object} config - State configuration object
+   */
+  _applyStateConfig(config) {
+    this.elements.toggleButton.textContent = config.buttonText;
+    this.elements.toggleButton.className = config.buttonClass;
+    this.elements.statusIndicator.className = config.indicatorClass;
+    this.elements.statusText.textContent = config.statusText;
+    this.elements.lightIcon.className = config.iconClass;
+    this.elements.toggleButton.disabled = config.disabled;
+  }
+
+  /**
+   * Renderiza estado
+   * @param {string} state - State to render ('on', 'off', or 'unknown')
+   */
   renderLightState(state) {
     this.currentState = state;
-    
-    if (state === 'on') {
-      this.showLightOn();
-    } else if (state === 'off') {
-      this.showLightOff();
-    } else {
-      this.showUnknownState();
-    }
-    
+
+    const config = this.stateConfig[state] || this.stateConfig.unknown;
+    this._applyStateConfig(config);
+
     this.hideLoading();
   }
 
-  // Mostra luz ligada
+  /**
+   * Mostra luz ligada
+   */
   showLightOn() {
-    this.elements.toggleButton.textContent = 'Desligar';
-    this.elements.toggleButton.className = 'toggle-btn on';
-    this.elements.statusIndicator.className = 'status-indicator on';
-    this.elements.statusText.textContent = 'Ligada';
-    this.elements.lightIcon.className = 'light-icon on';
-    this.elements.toggleButton.disabled = false;
+    this.renderLightState('on');
   }
 
-  // Mostra luz desligada
+  /**
+   * Mostra luz desligada
+   */
   showLightOff() {
-    this.elements.toggleButton.textContent = 'Ligar';
-    this.elements.toggleButton.className = 'toggle-btn off';
-    this.elements.statusIndicator.className = 'status-indicator off';
-    this.elements.statusText.textContent = 'Desligada';
-    this.elements.lightIcon.className = 'light-icon off';
-    this.elements.toggleButton.disabled = false;
+    this.renderLightState('off');
   }
 
-  // Mostra estado desconhecido
+  /**
+   * Mostra estado desconhecido
+   */
   showUnknownState() {
-    this.elements.toggleButton.textContent = 'Conectando...';
-    this.elements.toggleButton.className = 'toggle-btn unknown';
-    this.elements.statusIndicator.className = 'status-indicator unknown';
-    this.elements.statusText.textContent = 'Conectando...';
-    this.elements.lightIcon.className = 'light-icon unknown';
-    this.elements.toggleButton.disabled = true;
+    this.renderLightState('unknown');
   }
 
-  // Mostra loading
+  /**
+   * Mostra loading
+   */
   showLoading() {
     this.isLoading = true;
     this.elements.loadingSpinner.style.display = 'block';
     this.elements.toggleButton.disabled = true;
   }
 
-  // Esconde loading
+  /**
+   * Esconde loading
+   */
   hideLoading() {
     this.isLoading = false;
     this.elements.loadingSpinner.style.display = 'none';
   }
 
-  // Mostra erro
+  /**
+   * Cria notificação de erro
+   * @param {string} message - Error message to display
+   */
   showError(message) {
     this.hideLoading();
-    
-    // Cria notificação de erro
+
     const errorDiv = document.createElement('div');
     errorDiv.className = 'error-notification';
     errorDiv.textContent = message;
-    
+
     document.body.appendChild(errorDiv);
-    
+
     // Remove após 3 segundos
     setTimeout(() => {
       if (errorDiv.parentNode) {
@@ -89,7 +124,10 @@ class LightView {
     }, 3000);
   }
 
-  // Adiciona listener para o botão
+  /**
+   * Adiciona listener para o botão
+   * @param {Function} callback - Callback function with new state
+   */
   onToggleClick(callback) {
     this.elements.toggleButton.addEventListener('click', () => {
       if (!this.isLoading && this.currentState !== null) {
@@ -100,10 +138,13 @@ class LightView {
     });
   }
 
-  // Método para atualizar a interface de forma suave
+  /**
+   * Update UI with smooth animation
+   * @param {string} state - New state to display
+   */
   updateWithAnimation(state) {
     this.elements.toggleButton.style.transform = 'scale(0.95)';
-    
+
     setTimeout(() => {
       this.renderLightState(state);
       this.elements.toggleButton.style.transform = 'scale(1)';
