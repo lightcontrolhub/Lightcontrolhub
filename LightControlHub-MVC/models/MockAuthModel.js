@@ -1,15 +1,8 @@
-class EmailAuthModel {
+class MockAuthModel {
   constructor() {
     this.token = localStorage.getItem('authToken');
     this.user = JSON.parse(localStorage.getItem('user') || 'null');
     this.users = JSON.parse(localStorage.getItem('mockUsers') || '{}');
-    
-    // Configure EmailJS (substitua pelos seus IDs)
-    this.emailjsConfig = {
-      serviceId: 'YOUR_SERVICE_ID',
-      templateId: 'YOUR_TEMPLATE_ID', 
-      publicKey: 'YOUR_PUBLIC_KEY'
-    };
   }
 
   async login(email, password) {
@@ -20,14 +13,19 @@ class EmailAuthModel {
       throw new Error('Email ou senha inválidos');
     }
     
-    const token = 'token_' + Date.now();
+    const token = 'mock_token_' + Date.now();
     this.token = token;
     this.user = { userId: user.id, email };
     
     localStorage.setItem('authToken', this.token);
     localStorage.setItem('user', JSON.stringify(this.user));
     
-    return { success: true, token, userId: user.id, email };
+    return {
+      success: true,
+      token,
+      userId: user.id,
+      email
+    };
   }
 
   async register(email, password) {
@@ -45,57 +43,18 @@ class EmailAuthModel {
   }
 
   async sendVerificationCode(email) {
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    localStorage.setItem('verificationCode', JSON.stringify({ 
-      email, code, expires: Date.now() + 300000 
-    }));
+    await this.delay(300);
+    const code = '123456';
+    localStorage.setItem('verificationCode', JSON.stringify({ email, code, expires: Date.now() + 300000 }));
     
-    try {
-      // Carrega EmailJS se não estiver carregado
-      if (!window.emailjs) {
-        await this.loadEmailJS();
-      }
-      
-      // Envia email real
-      await emailjs.send(
-        this.emailjsConfig.serviceId,
-        this.emailjsConfig.templateId,
-        {
-          to_email: email,
-          verification_code: code,
-          app_name: 'LightControlHub'
-        },
-        this.emailjsConfig.publicKey
-      );
-      
-      return { 
-        success: true, 
-        message: `Código enviado para ${email}`,
-        realEmail: true
-      };
-    } catch (error) {
-      console.error('Erro ao enviar email:', error);
-      // Fallback: mostra o código na tela
-      return { 
-        success: true, 
-        message: `Erro no email. Código: ${code}`,
-        code,
-        realEmail: false
-      };
-    }
-  }
-
-  async loadEmailJS() {
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js';
-      script.onload = () => {
-        emailjs.init(this.emailjsConfig.publicKey);
-        resolve();
-      };
-      script.onerror = reject;
-      document.head.appendChild(script);
-    });
+    // Simula envio de email
+    console.log(`📧 Email enviado para ${email} com código: ${code}`);
+    
+    return { 
+      success: true, 
+      message: `Código de verificação enviado para ${email}`, 
+      code // Mostra o código para teste
+    };
   }
 
   async verifyCode(email, code) {
@@ -134,4 +93,4 @@ class EmailAuthModel {
   }
 }
 
-export default EmailAuthModel;
+export default MockAuthModel;

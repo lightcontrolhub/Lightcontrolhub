@@ -138,12 +138,12 @@ class AppController {
   logout() {
     this.authModel.logout();
     this.lightModel.stopListening();
-    window.location.href = 'index.html';
+    this.view.showLogin();
   }
 
   showLightControl() {
-    // Redireciona para a tela com histórico
-    window.location.href = 'sistema-com-historico.html';
+    this.view.showLightControl(this.authModel.user.email);
+    this.startLightMonitoring();
   }
 
   startLightMonitoring() {
