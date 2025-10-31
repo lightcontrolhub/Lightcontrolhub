@@ -1,54 +1,291 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Light Control Hub - Sistema com Histórico</title>
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-    .container { max-width: 800px; margin: 0 auto; background: white; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); overflow: hidden; }
-    .header { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; padding: 30px; text-align: center; }
-    .header h1 { font-size: 2.5em; margin-bottom: 10px; }
-    .header p { opacity: 0.9; font-size: 1.1em; }
-    .main-content { padding: 40px; }
-    .light-control { text-align: center; margin-bottom: 40px; }
-    .light-icon { font-size: 6em; margin-bottom: 20px; transition: all 0.3s ease; }
-    .light-icon.on { color: #ffd700; text-shadow: 0 0 30px #ffd700; }
-    .light-icon.off { color: #ccc; }
-    .status-text { font-size: 1.5em; margin-bottom: 20px; font-weight: 600; }
-    .btn { padding: 15px 30px; border: none; border-radius: 50px; font-size: 1.2em; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin: 10px; }
-    .toggle-btn.on { background: linear-gradient(135deg, #ff6b6b, #ee5a24); color: white; }
-    .toggle-btn.off { background: linear-gradient(135deg, #00d2d3, #54a0ff); color: white; }
-    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,0.2); }
-    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
-    .controls { display: flex; justify-content: center; gap: 15px; margin-bottom: 30px; }
-    .secondary-btn { background: #f8f9fa; color: #495057; border: 2px solid #dee2e6; }
-    .secondary-btn:hover { background: #e9ecef; }
-    .loading-spinner { display: none; margin: 20px auto; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-    .history-panel, .stats-panel { display: none; background: #f8f9fa; border-radius: 15px; padding: 30px; margin-top: 30px; }
-    .history-header, .stats-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .history-item { display: flex; align-items: center; padding: 15px; margin-bottom: 10px; background: white; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
-    .history-item.on { border-left: 4px solid #ffd700; }
-    .history-item.off { border-left: 4px solid #6c757d; }
-    .history-icon { font-size: 2em; margin-right: 15px; }
-    .history-details { flex: 1; }
-    .history-action { font-weight: 600; color: #495057; }
-    .history-duration { color: #6c757d; font-size: 0.9em; margin-top: 5px; }
-    .no-history { text-align: center; color: #6c757d; font-style: italic; }
-    .last-updated { text-align: center; color: #6c757d; font-size: 0.9em; margin-top: 20px; }
-    .success-message { position: fixed; top: 20px; right: 20px; background: #28a745; color: white; padding: 15px 25px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); z-index: 1000; animation: slideIn 0.3s ease; }
-    @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; }
-    .stat-card { background: white; padding: 25px; border-radius: 15px; text-align: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); transition: transform 0.3s ease; }
-    .stat-card:hover { transform: translateY(-5px); }
-    .stat-icon { font-size: 2.5em; margin-bottom: 10px; }
-    .stat-value { font-size: 1.8em; font-weight: bold; color: #495057; margin-bottom: 5px; }
-    .stat-label { color: #6c757d; font-size: 0.9em; font-weight: 500; }
-    .logout-btn { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.3); padding: 10px 20px; border-radius: 25px; }
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+      color: white;
+      padding: 30px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .header p {
+      opacity: 0.9;
+      font-size: 1.1em;
+    }
+
+    .main-content {
+      padding: 40px;
+    }
+
+    .light-control {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .light-icon {
+      font-size: 6em;
+      margin-bottom: 20px;
+      transition: all 0.3s ease;
+    }
+
+    .light-icon.on {
+      color: #ffd700;
+      text-shadow: 0 0 30px #ffd700;
+    }
+
+    .light-icon.off {
+      color: #ccc;
+    }
+
+    .status-text {
+      font-size: 1.5em;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    .btn {
+      padding: 15px 30px;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.2em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 10px;
+    }
+
+    .toggle-btn.on {
+      background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      color: white;
+    }
+
+    .toggle-btn.off {
+      background: linear-gradient(135deg, #00d2d3, #54a0ff);
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 15px;
+      margin-bottom: 30px;
+    }
+
+    .secondary-btn {
+      background: #f8f9fa;
+      color: #495057;
+      border: 2px solid #dee2e6;
+    }
+
+    .secondary-btn:hover {
+      background: #e9ecef;
+    }
+
+    .loading-spinner {
+      display: none;
+      margin: 20px auto;
+      width: 40px;
+      height: 40px;
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid #3498db;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+
+    .history-panel,
+    .stats-panel {
+      display: none;
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 30px;
+      margin-top: 30px;
+    }
+
+    .history-header,
+    .stats-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .history-item {
+      display: flex;
+      align-items: center;
+      padding: 15px;
+      margin-bottom: 10px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .history-item.on {
+      border-left: 4px solid #ffd700;
+    }
+
+    .history-item.off {
+      border-left: 4px solid #6c757d;
+    }
+
+    .history-icon {
+      font-size: 2em;
+      margin-right: 15px;
+    }
+
+    .history-details {
+      flex: 1;
+    }
+
+    .history-action {
+      font-weight: 600;
+      color: #495057;
+    }
+
+    .history-duration {
+      color: #6c757d;
+      font-size: 0.9em;
+      margin-top: 5px;
+    }
+
+    .no-history {
+      text-align: center;
+      color: #6c757d;
+      font-style: italic;
+    }
+
+    .last-updated {
+      text-align: center;
+      color: #6c757d;
+      font-size: 0.9em;
+      margin-top: 20px;
+    }
+
+    .success-message {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: #28a745;
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(100%);
+      }
+
+      to {
+        transform: translateX(0);
+      }
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+    }
+
+    .stat-icon {
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .stat-value {
+      font-size: 1.8em;
+      font-weight: bold;
+      color: #495057;
+      margin-bottom: 5px;
+    }
+
+    .stat-label {
+      color: #6c757d;
+      font-size: 0.9em;
+      font-weight: 500;
+    }
+
+    .logout-btn {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      padding: 10px 20px;
+      border-radius: 25px;
+    }
   </style>
 </head>
+
 <body>
   <div class="container">
     <div class="header">
@@ -56,7 +293,7 @@
       <h1>💡 Light Control Hub</h1>
       <p>Sistema Inteligente com Histórico</p>
     </div>
-    
+
     <div class="main-content">
       <div class="light-control">
         <div id="lightIcon" class="light-icon off">💡</div>
@@ -64,13 +301,13 @@
         <button id="lightToggle" class="btn toggle-btn off">Ligar</button>
         <div id="loadingSpinner" class="loading-spinner"></div>
       </div>
-      
+
       <div class="controls">
         <button id="showHistory" class="btn secondary-btn">📊 Ver Histórico</button>
         <button id="showStats" class="btn secondary-btn">📈 Estatísticas</button>
         <button id="refreshHistory" class="btn secondary-btn">🔄 Atualizar</button>
       </div>
-      
+
       <div id="historyPanel" class="history-panel">
         <div class="history-header">
           <h3>📈 Histórico Recente</h3>
@@ -79,7 +316,7 @@
           <p class="no-history">Clique em "Ver Histórico" para carregar</p>
         </div>
       </div>
-      
+
       <div id="statsPanel" class="stats-panel">
         <div class="stats-header">
           <h3>📊 Estatísticas de Uso</h3>
@@ -97,8 +334,8 @@
           </div>
           <div class="stat-card">
             <div class="stat-icon">⚡</div>
-            <div class="stat-value" id="efficiency">0%</div>
-            <div class="stat-label">Eficiência de Uso</div>
+            <div class="stat-value" id="efficiency">0</div>
+            <div class="stat-label">Consumo (µWatts)</div>
           </div>
           <div class="stat-card">
             <div class="stat-icon">🕐</div>
@@ -107,133 +344,133 @@
           </div>
         </div>
       </div>
-      
+
       <div id="lastUpdated" class="last-updated"></div>
     </div>
   </div>
 
-<script type="module">
-  // Verifica se usuário está logado e obtém dados
-  const authToken = localStorage.getItem('authToken');
-  const userData = JSON.parse(localStorage.getItem('user') || '{}');
-  
-  if (!authToken || !userData.userId) {
-    alert('Acesso negado! Faça login primeiro.');
-    window.location.href = 'index.html';
-  }
-  
-  const currentUserId = userData.userId;
-  const currentUserEmail = userData.email;
-  // Importa o Firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-  import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+  <script type="module">
+    // Verifica se usuário está logado e obtém dados
+    const authToken = localStorage.getItem('authToken');
+    const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
-  // 🔥 Configuração do seu projeto Firebase - Light Control Hub
-  const firebaseConfig = {
-    apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
-    authDomain: "teste-9142b.firebaseapp.com",
-    databaseURL: "https://teste-9142b-default-rtdb.firebaseio.com",
-    projectId: "teste-9142b",
-    storageBucket: "teste-9142b.firebasestorage.app",
-    messagingSenderId: "758452370683",
-    appId: "1:758452370683:web:b77f3d0989725c51cb045e"
-  };
-
-  // Inicializa Firebase
-  const app = initializeApp(firebaseConfig);
-  const db = getDatabase(app);
-
-  // Estado inicial
-  let isLightOn = false;
-  let currentSession = null;
-
-  // Ações de interface
-  document.getElementById('lightToggle').addEventListener('click', toggleLight);
-  document.getElementById('showHistory').addEventListener('click', toggleHistoryView);
-  document.getElementById('showStats').addEventListener('click', toggleStatsView);
-  document.getElementById('refreshHistory').addEventListener('click', loadRecentHistory);
-  document.getElementById('logoutBtn').addEventListener('click', logout);
-
-  // === Função principal: ligar/desligar lâmpada ===
-  async function toggleLight() {
-    const btn = document.getElementById('lightToggle');
-    const icon = document.getElementById('lightIcon');
-    const status = document.getElementById('statusText');
-    const loading = document.getElementById('loadingSpinner');
-
-    btn.disabled = true;
-    loading.style.display = 'block';
-
-    try {
-      const previousState = isLightOn ? 'on' : 'off';
-      const newState = isLightOn ? 'off' : 'on';
-
-      // Se estava ligada, calcula tempo de duração
-      let duration = null, durationFormatted = null;
-      if (currentSession && newState === 'off') {
-        duration = Date.now() - currentSession.startTime;
-        durationFormatted = formatDuration(duration);
-      }
-
-      // Cria registro no Firebase
-      const change = {
-        lightId: 'dispositivo-do-breno',
-        fromState: previousState,
-        toState: newState,
-        timestamp: Date.now(),
-        timestampFormatted: new Date().toLocaleString('pt-BR'),
-        userId: currentUserEmail,
-        duration,
-        durationFormatted
-      };
-
-      // Controla o LED físico (caminho que o Arduino está lendo)
-      const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
-      console.log('Enviando comando para Firebase:', devicePath, '=', newState);
-      await set(ref(db, devicePath), newState);
-      console.log('Comando enviado para Arduino!');
-      
-      // Salva no histórico específico do usuário
-      await push(ref(db, `users/${currentUserId}/historico`), change);
-
-      // Atualiza interface
-      isLightOn = newState === 'on';
-      icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
-      status.textContent = isLightOn ? 'Ligada' : 'Desligada';
-      btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
-      btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
-      currentSession = isLightOn ? { startTime: Date.now() } : null;
-
-      document.getElementById('lastUpdated').textContent =
-        `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
-
-      showSuccessMessage(`💡 Lâmpada ${isLightOn ? 'ligada' : 'desligada'}`);
-    } catch (err) {
-      alert('Erro ao controlar lâmpada: ' + err.message);
-    } finally {
-      btn.disabled = false;
-      loading.style.display = 'none';
+    if (!authToken || !userData.userId) {
+      alert('Acesso negado! Faça login primeiro.');
+      window.location.href = 'index.html';
     }
-  }
 
-  // === Carrega histórico do Firebase ===
-  function loadRecentHistory() {
-    const historyRef = ref(db, `users/${currentUserId}/historico`);
-    const historyContainer = document.getElementById('historyList');
-    historyContainer.innerHTML = '<p class="no-history">Carregando histórico...</p>';
+    const currentUserId = userData.userId;
+    const currentUserEmail = userData.email;
+    // Importa o Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
-    onValue(historyRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) {
-        historyContainer.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
-        return;
+    // 🔥 Configuração do seu projeto Firebase - Light Control Hub
+    const firebaseConfig = {
+      apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
+      authDomain: "teste-9142b.firebaseapp.com",
+      databaseURL: "https://teste-9142b-default-rtdb.firebaseio.com",
+      projectId: "teste-9142b",
+      storageBucket: "teste-9142b.firebasestorage.app",
+      messagingSenderId: "758452370683",
+      appId: "1:758452370683:web:b77f3d0989725c51cb045e"
+    };
+
+    // Inicializa Firebase
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // Estado inicial
+    let isLightOn = false;
+    let currentSession = null;
+
+    // Ações de interface
+    document.getElementById('lightToggle').addEventListener('click', toggleLight);
+    document.getElementById('showHistory').addEventListener('click', toggleHistoryView);
+    document.getElementById('showStats').addEventListener('click', toggleStatsView);
+    document.getElementById('refreshHistory').addEventListener('click', loadRecentHistory);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+
+    // === Função principal: ligar/desligar lâmpada ===
+    async function toggleLight() {
+      const btn = document.getElementById('lightToggle');
+      const icon = document.getElementById('lightIcon');
+      const status = document.getElementById('statusText');
+      const loading = document.getElementById('loadingSpinner');
+
+      btn.disabled = true;
+      loading.style.display = 'block';
+
+      try {
+        const previousState = isLightOn ? 'on' : 'off';
+        const newState = isLightOn ? 'off' : 'on';
+
+        // Se estava ligada, calcula tempo de duração
+        let duration = null, durationFormatted = null;
+        if (currentSession && newState === 'off') {
+          duration = Date.now() - currentSession.startTime;
+          durationFormatted = formatDuration(duration);
+        }
+
+        // Cria registro no Firebase
+        const change = {
+          lightId: 'dispositivo-do-breno',
+          fromState: previousState,
+          toState: newState,
+          timestamp: Date.now(),
+          timestampFormatted: new Date().toLocaleString('pt-BR'),
+          userId: currentUserEmail,
+          duration,
+          durationFormatted
+        };
+
+        // Controla o LED físico (caminho que o Arduino está lendo)
+        const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
+        console.log('Enviando comando para Firebase:', devicePath, '=', newState);
+        await set(ref(db, devicePath), newState);
+        console.log('Comando enviado para Arduino!');
+
+        // Salva no histórico específico do usuário
+        await push(ref(db, `users/${currentUserId}/historico`), change);
+
+        // Atualiza interface
+        isLightOn = newState === 'on';
+        icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
+        status.textContent = isLightOn ? 'Ligada' : 'Desligada';
+        btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
+        btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
+        currentSession = isLightOn ? { startTime: Date.now() } : null;
+
+        document.getElementById('lastUpdated').textContent =
+          `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+
+        showSuccessMessage(`💡 Lâmpada ${isLightOn ? 'ligada' : 'desligada'}`);
+      } catch (err) {
+        alert('Erro ao controlar lâmpada: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        loading.style.display = 'none';
       }
+    }
 
-      const historyArray = Object.values(data)
-        .sort((a, b) => b.timestamp - a.timestamp)
-        .slice(0, 5);
+    // === Carrega histórico do Firebase ===
+    function loadRecentHistory() {
+      const historyRef = ref(db, `users/${currentUserId}/historico`);
+      const historyContainer = document.getElementById('historyList');
+      historyContainer.innerHTML = '<p class="no-history">Carregando histórico...</p>';
 
-      const html = historyArray.map(item => `
+      onValue(historyRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          historyContainer.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
+          return;
+        }
+
+        const historyArray = Object.values(data)
+          .sort((a, b) => b.timestamp - a.timestamp)
+          .slice(0, 5);
+
+        const html = historyArray.map(item => `
         <div class="history-item ${item.toState}">
           <div class="history-icon">${item.toState === 'on' ? '💡' : '🌙'}</div>
           <div class="history-details">
@@ -243,134 +480,156 @@
         </div>
       `).join('');
 
-      historyContainer.innerHTML = html;
-    });
-  }
-
-  // === Funções auxiliares ===
-  function toggleHistoryView() {
-    const panel = document.getElementById('historyPanel');
-    const statsPanel = document.getElementById('statsPanel');
-    const isVisible = panel.style.display === 'block';
-    panel.style.display = isVisible ? 'none' : 'block';
-    statsPanel.style.display = 'none';
-    if (!isVisible) loadRecentHistory();
-  }
-
-  function toggleStatsView() {
-    const panel = document.getElementById('statsPanel');
-    const historyPanel = document.getElementById('historyPanel');
-    const isVisible = panel.style.display === 'block';
-    panel.style.display = isVisible ? 'none' : 'block';
-    historyPanel.style.display = 'none';
-    if (!isVisible) loadStatistics();
-  }
-
-  function loadStatistics() {
-    const historyRef = ref(db, `users/${currentUserId}/historico`);
-    onValue(historyRef, (snapshot) => {
-      const data = snapshot.val();
-      if (!data) {
-        document.getElementById('totalTime').textContent = '0h 0m';
-        document.getElementById('totalChanges').textContent = '0';
-        document.getElementById('efficiency').textContent = '0%';
-        document.getElementById('peakHour').textContent = '--:--';
-        return;
-      }
-
-      const events = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
-      
-      // Tempo total ligado
-      let totalOnTime = 0;
-      events.forEach(event => {
-        if (event.duration) totalOnTime += event.duration;
+        historyContainer.innerHTML = html;
       });
-      
-      // Total de mudanças
-      const totalChanges = events.length;
-      
-      // Eficiência (tempo ligado vs tempo total do período)
-      const firstEvent = events[0];
-      const lastEvent = events[events.length - 1];
-      const totalPeriod = firstEvent && lastEvent ? lastEvent.timestamp - firstEvent.timestamp : 1;
-      const efficiency = totalPeriod > 0 ? Math.round((totalOnTime / totalPeriod) * 100) : 0;
-      
-      // Horário mais usado
-      const hourCounts = {};
-      events.filter(e => e.toState === 'on').forEach(event => {
-        const hour = new Date(event.timestamp).getHours();
-        hourCounts[hour] = (hourCounts[hour] || 0) + 1;
-      });
-      
-      const peakHour = Object.keys(hourCounts).reduce((a, b) => 
-        hourCounts[a] > hourCounts[b] ? a : b, '0');
-      
-      // Atualiza interface
-      document.getElementById('totalTime').textContent = formatDuration(totalOnTime);
-      document.getElementById('totalChanges').textContent = totalChanges;
-      document.getElementById('efficiency').textContent = efficiency + '%';
-      document.getElementById('peakHour').textContent = 
-        peakHour !== '0' || hourCounts[peakHour] ? `${peakHour.padStart(2, '0')}:00` : '--:--';
-    });
-  }
-
-  function showSuccessMessage(msg) {
-    const div = document.createElement('div');
-    div.className = 'success-message';
-    div.textContent = msg;
-    document.body.appendChild(div);
-    setTimeout(() => div.remove(), 3000);
-  }
-
-  function formatDuration(ms) {
-    const s = Math.floor(ms / 1000);
-    const m = Math.floor(s / 60);
-    const h = Math.floor(m / 60);
-    if (h > 0) return `${h}h ${m % 60}m`;
-    if (m > 0) return `${m}m ${s % 60}s`;
-    return `${s}s`;
-  }
-
-  function logout() {
-    if (confirm('Deseja realmente sair do sistema?')) {
-      // Limpa todos os dados de autenticação
-      localStorage.removeItem('authToken');
-      localStorage.removeItem('user');
-      localStorage.removeItem('verificationCode');
-      
-      // Redireciona para login
-      window.location.href = 'index.html';
     }
-  }
 
-  // Inicialização
-  // Verifica estado atual do LED no Firebase
-  function checkLedStatus() {
-    const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
-    console.log('Verificando estado do LED em:', devicePath);
-    
-    onValue(ref(db, devicePath), (snapshot) => {
-      const ledState = snapshot.val();
-      console.log('Estado atual do LED no Firebase:', ledState);
-      
-      if (ledState) {
-        isLightOn = ledState === 'on';
-        const icon = document.getElementById('lightIcon');
-        const status = document.getElementById('statusText');
-        const btn = document.getElementById('lightToggle');
-        
-        icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
-        status.textContent = isLightOn ? 'Ligada' : 'Desligada';
-        btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
-        btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
+    // === Funções auxiliares ===
+    function toggleHistoryView() {
+      const panel = document.getElementById('historyPanel');
+      const statsPanel = document.getElementById('statsPanel');
+      const isVisible = panel.style.display === 'block';
+      panel.style.display = isVisible ? 'none' : 'block';
+      statsPanel.style.display = 'none';
+      if (!isVisible) loadRecentHistory();
+    }
+
+    function toggleStatsView() {
+      const panel = document.getElementById('statsPanel');
+      const historyPanel = document.getElementById('historyPanel');
+      const isVisible = panel.style.display === 'block';
+      panel.style.display = isVisible ? 'none' : 'block';
+      historyPanel.style.display = 'none';
+      if (!isVisible) loadStatistics();
+    }
+
+    function calcularConsumoLED(tempoEmMilisegundos) {
+      const potenciaLEDMicrowatts = 50;
+
+      // Converter microwatts para Watts
+      const potenciaLEDWatts = potenciaLEDMicrowatts / 1000000;
+      const voltagemLEDVolts = 12;
+
+      const tempoEmHoras = tempoEmMilisegundos / (1000 * 60 * 60);
+
+      const consumoWh = potenciaLEDWatts * tempoEmHoras;
+
+      const correnteAmperes = potenciaLEDWatts / voltagemLEDVolts;
+
+      const consumoAh = correnteAmperes * tempoEmHoras;
+
+      return consumoAh.toFixed(6);
+
+    }
+
+
+    function loadStatistics() {
+      const historyRef = ref(db, `users/${currentUserId}/historico`);
+      onValue(historyRef, (snapshot) => {
+        const data = snapshot.val();
+        if (!data) {
+          document.getElementById('totalTime').textContent = '0h 0m';
+          document.getElementById('totalChanges').textContent = '0';
+          document.getElementById('efficiency').textContent = '0 µWatts';
+          document.getElementById('peakHour').textContent = '--:--';
+          return;
+        }
+
+        const events = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
+
+        // Tempo total ligado
+        let totalOnTime = 0;
+        events.forEach(event => {
+          if (event.duration) totalOnTime += event.duration;
+        });
+
+        // Total de mudanças
+        const totalChanges = events.length;
+
+        // Eficiência (tempo ligado vs tempo total do período)
+        const firstEvent = events[0];
+        const lastEvent = events[events.length - 1];
+        const totalPeriod = firstEvent && lastEvent ? lastEvent.timestamp - firstEvent.timestamp : 1;
+        const efficiency = totalPeriod > 0 ? calcularConsumoLED(totalPeriod) : 0;
+
+        // Horário mais usado
+        const hourCounts = {};
+        events.filter(e => e.toState === 'on').forEach(event => {
+          const hour = new Date(event.timestamp).getHours();
+          hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+        });
+
+        const peakHour = Object.keys(hourCounts).reduce((a, b) =>
+          hourCounts[a] > hourCounts[b] ? a : b, '0');
+
+        // Atualiza interface
+        document.getElementById('totalTime').textContent = formatDuration(totalOnTime);
+        document.getElementById('totalChanges').textContent = totalChanges;
+        document.getElementById('efficiency').textContent = efficiency + 'µWatts';
+        document.getElementById('peakHour').textContent =
+          peakHour !== '0' || hourCounts[peakHour] ? `${peakHour.padStart(2, '0')}:00` : '--:--';
+      });
+    }
+
+    function showSuccessMessage(msg) {
+      const div = document.createElement('div');
+      div.className = 'success-message';
+      div.textContent = msg;
+      document.body.appendChild(div);
+      setTimeout(() => div.remove(), 3000);
+    }
+
+    function formatDuration(ms) {
+      const s = Math.floor(ms / 1000);
+      const m = Math.floor(s / 60);
+      const h = Math.floor(m / 60);
+      if (h > 0) return `${h}h ${m % 60}m`;
+      if (m > 0) return `${m}m ${s % 60}s`;
+      return `${s}s`;
+    }
+
+
+    function logout() {
+      if (confirm('Deseja realmente sair do sistema?')) {
+        // Limpa todos os dados de autenticação
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('user');
+        localStorage.removeItem('verificationCode');
+
+        // Redireciona para login
+        window.location.href = 'index.html';
       }
-    });
-  }
-  
-  // Inicialização
-  checkLedStatus();
-  document.getElementById('lastUpdated').textContent =
-    `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
-</script>
+    }
+
+    // Inicialização
+    // Verifica estado atual do LED no Firebase
+    function checkLedStatus() {
+      const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
+      console.log('Verificando estado do LED em:', devicePath);
+
+      onValue(ref(db, devicePath), (snapshot) => {
+        const ledState = snapshot.val();
+        console.log('Estado atual do LED no Firebase:', ledState);
+
+        if (ledState) {
+          isLightOn = ledState === 'on';
+          const icon = document.getElementById('lightIcon');
+          const status = document.getElementById('statusText');
+          const btn = document.getElementById('lightToggle');
+
+          icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
+          status.textContent = isLightOn ? 'Ligada' : 'Desligada';
+          btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
+          btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
+        }
+      });
+    }
+
+    // Inicialização
+    checkLedStatus();
+    document.getElementById('lastUpdated').textContent =
+      `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+  </script>
 </body>
+
 </html>

@@ -1,22 +1,22 @@
-import MockAuthModel from '../models/MockAuthModel.js';
 import LightModel from '../models/LightModel.js';
+import AuthService from '../service/AuthService.js';
 import AuthView from '../views/AuthView.js';
 
 class AppController {
   constructor() {
-    this.authModel = new MockAuthModel();
     this.lightModel = new LightModel(this.authModel);
     this.view = new AuthView();
     this.currentEmail = '';
-    
+    this.AuthService = new AuthService();
+
     this.init();
   }
 
   async init() {
     this.setupEventListeners();
-    
+
     if (this.authModel.isAuthenticated()) {
-      const isValid = await this.authModel.verifyToken();
+      const isValid = await this.AuthService.verifyToken();
       if (isValid) {
         this.showLightControl();
       } else {
@@ -40,7 +40,7 @@ class AppController {
 
   async handleFormSubmit(formId, formData) {
     this.view.showLoading(true);
-    
+
     try {
       switch (formId) {
         case 'loginForm':
@@ -87,39 +87,39 @@ class AppController {
   async handleLogin(formData) {
     const email = formData.email;
     const password = formData.password;
-    
+
     this.currentEmail = email;
-    
+
     // Envia código de verificação
     const codeResult = await this.authModel.sendVerificationCode(email);
     this.view.showMessage(`📧 ${codeResult.message}\nCódigo: ${codeResult.code}`, 'success');
-    
+
     this.view.showVerification(email);
   }
 
   async handleRegister(formData) {
     const email = formData.email;
     const password = formData.password;
-    
+
     await this.authModel.register(email, password);
     this.currentEmail = email;
-    
+
     // Envia código de verificação
     const codeResult = await this.authModel.sendVerificationCode(email);
     this.view.showMessage(`📧 ${codeResult.message}\nCódigo: ${codeResult.code}`, 'success');
-    
+
     this.view.showVerification(email);
   }
 
   async handleVerification(formData) {
     const code = formData.code;
-    
+
     await this.authModel.verifyCode(this.currentEmail, code);
-    
+
     // Agora faz login real
     const password = prompt('Digite sua senha novamente:');
     await this.authModel.login(this.currentEmail, password);
-    
+
     this.showLightControl();
   }
 
@@ -156,11 +156,11 @@ class AppController {
 
   async toggleLight() {
     this.view.showLoading(true);
-    
+
     try {
       const currentState = await this.lightModel.getCurrentState();
       const newState = currentState === 'on' ? 'off' : 'on';
-      
+
       await this.lightModel.setLightState(newState);
       this.view.updateLightState(newState);
     } catch (error) {

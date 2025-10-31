@@ -1,12 +1,12 @@
-import LightModel from '../models/LightModel.js';
+import LightService from '../service/LightService.js';
 import LightView from '../views/LightView.js';
 
 class LightController {
-  constructor() {
-    this.model = new LightModel();
+  constructor(firebaseUrl, deviceId) {
+    this.LightService = new LightService(firebaseUrl, deviceId);
     this.view = new LightView();
     this.isInitialized = false;
-    
+
     this.init();
   }
 
@@ -15,16 +15,16 @@ class LightController {
     try {
       // Configura listeners da view
       this.setupViewListeners();
-      
+
       // Configura listeners do model
       this.setupModelListeners();
-      
+
       // Carrega estado inicial
       await this.loadInitialState();
-      
+
       this.isInitialized = true;
       console.log('LightController inicializado com sucesso');
-      
+
     } catch (error) {
       console.error('Erro ao inicializar controller:', error);
       this.view.showError('Erro ao conectar com o sistema');
@@ -40,13 +40,13 @@ class LightController {
 
   // Configura listeners do model
   setupModelListeners() {
-    this.model.listenToLightState((state, error) => {
+    this.LightService.listenToLightState((state, error) => {
       if (error) {
         console.error('Erro ao receber estado:', error);
         this.view.showError('Erro de conexão');
         return;
       }
-      
+
       this.handleStateChange(state);
     });
   }
@@ -55,7 +55,7 @@ class LightController {
   async loadInitialState() {
     try {
       this.view.showLoading();
-      const currentState = await this.model.getCurrentState();
+      const currentState = await this.LightService.getCurrentState();
       this.handleStateChange(currentState);
     } catch (error) {
       console.error('Erro ao carregar estado inicial:', error);
@@ -67,15 +67,15 @@ class LightController {
   async handleToggleLight(newState) {
     try {
       // Valida o estado
-      if (!this.model.isValidState(newState)) {
+      if (!this.LightService.isValidState(newState)) {
         throw new Error('Estado inválido');
       }
 
       // Envia comando para o model
-      await this.model.setLightState(newState);
-      
+      await this.LightService.setLightState(newState);
+
       console.log(`Comando enviado: ${newState}`);
-      
+
     } catch (error) {
       console.error('Erro ao alterar estado da luz:', error);
       this.view.showError('Erro ao alterar estado da luz');
@@ -86,7 +86,7 @@ class LightController {
   // Manipula mudanças de estado vindas do Firebase
   handleStateChange(state) {
     console.log('Estado recebido:', state);
-    
+
     if (state === null || state === undefined) {
       this.view.showUnknownState();
       return;
@@ -98,9 +98,9 @@ class LightController {
 
   // Método para limpar recursos
   destroy() {
-    if (this.model && this.view) {
+    if (this.LightService && this.view) {
       // Para de escutar mudanças
-      this.model.stopListening(this.handleStateChange.bind(this));
+      this.LightService.stopListening(this.handleStateChange.bind(this));
       console.log('Controller destruído');
     }
   }
