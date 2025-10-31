@@ -401,6 +401,7 @@
       <button id="logoutBtn" class="logout-btn">Sair</button>
       <h1>💡 Light Control Hub</h1>
       <p>Sistema Inteligente com Histórico</p>
+      <p id="deviceInfo" style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;"></p>
     </div>
 
     <div class="main-content">
@@ -480,6 +481,8 @@
 
     const currentUserId = userData.userId;
     const currentUserEmail = userData.email;
+    const userDeviceId = `device-${currentUserId}`; // Dispositivo único por usuário
+    
     // Importa o Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
@@ -533,7 +536,7 @@
 
         // Cria registro no Firebase
         const change = {
-          lightId: 'dispositivo-do-breno',
+          lightId: userDeviceId,
           fromState: previousState,
           toState: newState,
           timestamp: Date.now(),
@@ -543,11 +546,11 @@
           durationFormatted
         };
 
-        // Controla o LED físico (caminho que o Arduino está lendo)
-        const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
+        // Controla o LED virtual do usuário (cada usuário tem seu próprio dispositivo)
+        const devicePath = `devices/${userDeviceId}/config/led13Mode`;
         console.log('Enviando comando para Firebase:', devicePath, '=', newState);
         await set(ref(db, devicePath), newState);
-        console.log('Comando enviado para Arduino!');
+        console.log('Comando enviado para dispositivo do usuário!');
 
         // Salva no histórico específico do usuário
         await push(ref(db, `users/${currentUserId}/historico`), change);
@@ -746,12 +749,12 @@
     // Inicialização
     // Verifica estado atual do LED no Firebase
     function checkLedStatus() {
-      const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
-      console.log('Verificando estado do LED em:', devicePath);
+      const devicePath = `devices/${userDeviceId}/config/led13Mode`;
+      console.log('Verificando estado do LED do usuário em:', devicePath);
 
       onValue(ref(db, devicePath), (snapshot) => {
         const ledState = snapshot.val();
-        console.log('Estado atual do LED no Firebase:', ledState);
+        console.log('Estado atual do LED do usuário no Firebase:', ledState);
 
         if (ledState) {
           isLightOn = ledState === 'on';
@@ -771,6 +774,10 @@
     checkLedStatus();
     document.getElementById('lastUpdated').textContent =
       `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+    
+    // Mostra informações do dispositivo do usuário
+    document.getElementById('deviceInfo').textContent = 
+      `Dispositivo: ${userDeviceId} | Usuário: ${currentUserEmail}`;
   </script>
 </body>
 
