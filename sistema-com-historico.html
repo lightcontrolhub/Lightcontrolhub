@@ -470,22 +470,45 @@
   </div>
 
   <script type="module">
-    // Verifica se usuário está logado e obtém dados
+    // Validação rigorosa de autenticação
     const authToken = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
-    if (!authToken || !userData.userId) {
-      alert('Acesso negado! Faça login primeiro.');
+    // Verifica se todos os dados necessários existem
+    if (!authToken || !userData.userId || !userData.email || !userData.sessionId) {
+      localStorage.clear(); // Limpa dados corrompidos
+      alert('Sessão inválida! Faça login novamente.');
       window.location.href = 'index.html';
+      throw new Error('Acesso negado');
     }
 
+    // Gera hash único baseado no userId para isolamento
     const currentUserId = userData.userId;
     const currentUserEmail = userData.email;
-    const userDeviceId = `device-${currentUserId}`; // Dispositivo único por usuário
+    const sessionId = userData.sessionId;
+    const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
+    
+    // Validação de sessão no Firebase
+    async function validateSession() {
+      try {
+        const sessionRef = ref(db, `sessions/${sessionId}`);
+        const sessionSnap = await get(sessionRef);
+        const sessionData = sessionSnap.val();
+        
+        if (!sessionData || sessionData.userId !== currentUserId || sessionData.expired) {
+          throw new Error('Sessão expirada');
+        }
+      } catch (error) {
+        localStorage.clear();
+        alert('Sessão expirada! Faça login novamente.');
+        window.location.href = 'index.html';
+        throw error;
+      }
+    }
     
     // Importa o Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     // 🔥 Configuração do seu projeto Firebase - Light Control Hub
     const firebaseConfig = {
@@ -546,14 +569,17 @@
           durationFormatted
         };
 
-        // Controla o LED virtual do usuário (cada usuário tem seu próprio dispositivo)
-        const devicePath = `devices/${userDeviceId}/config/led13Mode`;
+        // Valida sessão antes de qualquer operação
+        await validateSession();
+        
+        // Controla o LED virtual do usuário (isolado por hash)
+        const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
         console.log('Enviando comando para Firebase:', devicePath, '=', newState);
         await set(ref(db, devicePath), newState);
         console.log('Comando enviado para dispositivo do usuário!');
 
-        // Salva no histórico específico do usuário
-        await push(ref(db, `users/${currentUserId}/historico`), change);
+        // Salva no histórico privado do usuário
+        await push(ref(db, `private_users/${userDeviceId}/historico`), change);
 
         // Atualiza interface
         isLightOn = newState === 'on';
@@ -576,8 +602,9 @@
     }
 
     // === Carrega histórico do Firebase ===
-    function loadRecentHistory() {
-      const historyRef = ref(db, `users/${currentUserId}/historico`);
+    async function loadRecentHistory() {
+      await validateSession();
+      const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
       const historyContainer = document.getElementById('historyList');
       historyContainer.innerHTML = '<p class="no-history">Carregando histórico...</p>';
 
@@ -637,8 +664,9 @@
     }
 
 
-    function loadStatistics() {
-      const historyRef = ref(db, `users/${currentUserId}/historico`);
+    async function loadStatistics() {
+      await validateSession();
+      const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
       onValue(historyRef, (snapshot) => {
         const data = snapshot.val();
         if (!data) {
@@ -748,24 +776,29 @@
 
     // Inicialização
     // Verifica estado atual do LED no Firebase
-    function checkLedStatus() {
-      const devicePath = `devices/${userDeviceId}/config/led13Mode`;
+    async function checkLedStatus() {
+      await validateSession();
+      const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
       console.log('Verificando estado do LED do usuário em:', devicePath);
 
       onValue(ref(db, devicePath), (snapshot) => {
         const ledState = snapshot.val();
         console.log('Estado atual do LED do usuário no Firebase:', ledState);
 
-        if (ledState) {
-          isLightOn = ledState === 'on';
-          const icon = document.getElementById('lightIcon');
-          const status = document.getElementById('statusText');
-          const btn = document.getElementById('lightToggle');
+        // Define estado padrão como 'off' se não existir
+        isLightOn = ledState === 'on';
+        const icon = document.getElementById('lightIcon');
+        const status = document.getElementById('statusText');
+        const btn = document.getElementById('lightToggle');
 
-          icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
-          status.textContent = isLightOn ? 'Ligada' : 'Desligada';
-          btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
-          btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
+        icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
+        status.textContent = isLightOn ? 'Ligada' : 'Desligada';
+        btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
+        btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
+        
+        // Se não existe estado, inicializa como 'off'
+        if (ledState === null) {
+          set(ref(db, devicePath), 'off');
         }
       });
     }
