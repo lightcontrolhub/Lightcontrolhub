@@ -3,7 +3,7 @@ import LightView from '../views/LightView.js';
 
 class LightController {
   constructor(firebaseUrl, deviceId) {
-    this.LightService = new LightService(firebaseUrl, deviceId);
+    this.lightService = new LightService(firebaseUrl, deviceId);
     this.view = new LightView();
     this.isInitialized = false;
 
@@ -40,7 +40,7 @@ class LightController {
 
   // Configura listeners do model
   setupModelListeners() {
-    this.LightService.listenToLightState((state, error) => {
+    this.lightService.listenToLightState((state, error) => {
       if (error) {
         console.error('Erro ao receber estado:', error);
         this.view.showError('Erro de conexão');
@@ -55,7 +55,7 @@ class LightController {
   async loadInitialState() {
     try {
       this.view.showLoading();
-      const currentState = await this.LightService.getCurrentState();
+      const currentState = await this.lightService.getCurrentState();
       this.handleStateChange(currentState);
     } catch (error) {
       console.error('Erro ao carregar estado inicial:', error);
@@ -67,12 +67,12 @@ class LightController {
   async handleToggleLight(newState) {
     try {
       // Valida o estado
-      if (!this.LightService.isValidState(newState)) {
+      if (!this.lightService.isValidState(newState)) {
         throw new Error('Estado inválido');
       }
 
       // Envia comando para o model
-      await this.LightService.setLightState(newState);
+      await this.lightService.setLightState(newState);
 
       console.log(`Comando enviado: ${newState}`);
 
@@ -98,9 +98,9 @@ class LightController {
 
   // Método para limpar recursos
   destroy() {
-    if (this.LightService && this.view) {
+    if (this.lightService && this.view) {
       // Para de escutar mudanças
-      this.LightService.stopListening(this.handleStateChange.bind(this));
+      this.lightService.stopListening(this.handleStateChange.bind(this));
       console.log('Controller destruído');
     }
   }

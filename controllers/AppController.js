@@ -4,10 +4,10 @@ import AuthView from '../views/AuthView.js';
 
 class AppController {
   constructor() {
-    this.lightModel = new LightModel(this.authModel);
+    this.lightService = new LightModel(this.authModel);
     this.view = new AuthView();
     this.currentEmail = '';
-    this.AuthService = new AuthService();
+    this.authService = new AuthService();
 
     this.init();
   }
@@ -15,12 +15,12 @@ class AppController {
   async init() {
     this.setupEventListeners();
 
-    if (this.authModel.isAuthenticated()) {
-      const isValid = await this.AuthService.verifyToken();
+    if (this.authService.isAuthenticated()) {
+      const isValid = await this.authService.verifyToken();
       if (isValid) {
         this.showLightControl();
       } else {
-        this.authModel.logout();
+        this.authService.logout();
         this.view.showLogin();
       }
     } else {
@@ -101,11 +101,11 @@ class AppController {
     const email = formData.email;
     const password = formData.password;
 
-    await this.authModel.register(email, password);
+    await this.authService.register(email, password);
     this.currentEmail = email;
 
     // Envia código de verificação
-    const codeResult = await this.authModel.sendVerificationCode(email);
+    const codeResult = await this.authService.sendVerificationCode(email);
     this.view.showMessage(`📧 ${codeResult.message}\nCódigo: ${codeResult.code}`, 'success');
 
     this.view.showVerification(email);
@@ -114,11 +114,11 @@ class AppController {
   async handleVerification(formData) {
     const code = formData.code;
 
-    await this.authModel.verifyCode(this.currentEmail, code);
+    await this.authService.verifyCode(this.currentEmail, code);
 
     // Agora faz login real
     const password = prompt('Digite sua senha novamente:');
-    await this.authModel.login(this.currentEmail, password);
+    await this.authService.login(this.currentEmail, password);
 
     this.showLightControl();
   }
@@ -126,7 +126,7 @@ class AppController {
   async resendCode() {
     this.view.showLoading(true);
     try {
-      const result = await this.authModel.sendVerificationCode(this.currentEmail);
+      const result = await this.authService.sendVerificationCode(this.currentEmail);
       this.view.showMessage(`📧 ${result.message}\nNovo código: ${result.code}`, 'success');
     } catch (error) {
       this.view.showMessage(error.message, 'error');
@@ -136,8 +136,8 @@ class AppController {
   }
 
   logout() {
-    this.authModel.logout();
-    this.lightModel.stopListening();
+    this.authService.logout();
+    this.lightService.stopListening();
     window.location.href = 'index.html';
   }
 
@@ -147,7 +147,7 @@ class AppController {
   }
 
   startLightMonitoring() {
-    this.lightModel.listenToLightState((state) => {
+    this.lightService.listenToLightState((state) => {
       if (state !== null) {
         this.view.updateLightState(state);
       }
@@ -158,10 +158,10 @@ class AppController {
     this.view.showLoading(true);
 
     try {
-      const currentState = await this.lightModel.getCurrentState();
+      const currentState = await this.lightService.getCurrentState();
       const newState = currentState === 'on' ? 'off' : 'on';
 
-      await this.lightModel.setLightState(newState);
+      await this.lightService.setLightState(newState);
       this.view.updateLightState(newState);
     } catch (error) {
       this.view.showMessage(error.message, 'error');
