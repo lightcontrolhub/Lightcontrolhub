@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Redefinir Senha - LightControlHub</title>
+  <link rel="stylesheet" href="formulario.css">
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+    }
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+      text-align: center;
+    }
+    .login-box h1 {
+      margin-bottom: 30px;
+      color: #333;
+      font-size: 2em;
+    }
+    .login-box label {
+      display: block;
+      text-align: left;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: 600;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 20px;
+      border: 2px solid #e1e1e1;
+      border-radius: 10px;
+      font-size: 16px;
+      box-sizing: border-box;
+    }
+    .login-box input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .btn-entrar, .btn-criar {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .btn-entrar {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+    .btn-entrar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .btn-criar {
+      background: transparent;
+      color: #667eea;
+      border: 2px solid #667eea;
+    }
+    .btn-criar:hover {
+      background: #667eea;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="login-box">
+    <h1>Redefinir Senha</h1>
+    
+    <form>
+      <label for="email">Digite seu email:</label>
+      <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+      
+      <button type="submit" class="btn-entrar" onclick="sendResetEmail(event)">Enviar Link de Recuperação</button>
+    </form>
+    
+    <button class="btn-criar" onclick="window.location.href='index.html'">Voltar para Login</button>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+  import { getAuth, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
+    authDomain: "teste-9142b.firebaseapp.com",
+    databaseURL: "https://teste-9142b-default-rtdb.firebaseio.com",
+    projectId: "teste-9142b",
+    storageBucket: "teste-9142b.appspot.com",
+    messagingSenderId: "758452370683",
+    appId: "1:758452370683:web:b77f3d0989725c51cb045e"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth();
+
+  window.sendResetEmail = function(event) {
+    event.preventDefault();
+    const email = document.getElementById('email').value;
+    const button = event.target;
+    
+    console.log('Tentando enviar email para:', email);
+    
+    if (!email) {
+      alert('❌ Por favor, digite um email válido!');
+      return;
+    }
+    
+    // Desabilita botão durante envio
+    button.disabled = true;
+    button.textContent = 'Enviando...';
+    
+    sendPasswordResetEmail(auth, email)
+      .then(() => {
+        console.log('Email enviado com sucesso!');
+        alert('✅ Email de recuperação enviado!\n\nVerifique:\n• Caixa de entrada\n• Pasta de spam\n• Pode demorar alguns minutos');
+        setTimeout(() => window.location.href = 'index.html', 3000);
+      })
+      .catch((error) => {
+        console.error('Erro ao enviar email:', error);
+        alert('❌ Erro: ' + error.message);
+        button.disabled = false;
+        button.textContent = 'Enviar Link de Recuperação';
+      });
+  };
+</script>
+
+</body>
+</html>
