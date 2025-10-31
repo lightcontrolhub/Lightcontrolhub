@@ -3,10 +3,12 @@
  * Handles all Firebase database operations for device management
  * Follows Repository Pattern to abstract data access layer
  */
+import FirebaseClient from './FirebaseClient.js';
+
 class FirebaseRepository {
     constructor(firebaseUrl, deviceId) {
-        this.baseUrl = firebaseUrl;
-        this.deviceId = deviceId;
+        // Usa o singleton por par (firebaseUrl, deviceId)
+        this.client = FirebaseClient.getInstance(firebaseUrl, deviceId);
     }
 
     /**
@@ -15,7 +17,7 @@ class FirebaseRepository {
      * @returns {string} Complete Firebase URL
      */
     _buildUrl(path) {
-        return `${this.baseUrl}/devices/${this.deviceId}/${path}.json`;
+        return this.client.buildUrl(path);
     }
 
     /**
@@ -25,21 +27,7 @@ class FirebaseRepository {
      * @returns {Promise<any>} Response data
      */
     async _request(url, options = {}) {
-        try {
-            const response = await fetch(url, {
-                headers: { 'Content-Type': 'application/json' },
-                ...options
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            return await response.json();
-        } catch (error) {
-            console.error('Firebase request error:', error);
-            throw error;
-        }
+        return this.client.request(url, options);
     }
 
     /**
