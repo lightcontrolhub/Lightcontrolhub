@@ -45,8 +45,13 @@ signInWithEmailAndPassword(auth, email, password)
   });
 
   // Salva token de autenticação no localStorage
+  const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   localStorage.setItem('authToken', user.accessToken);
-  localStorage.setItem('user', JSON.stringify({ userId: user.uid, email: user.email }));
+  localStorage.setItem('user', JSON.stringify({ 
+    userId: user.uid, 
+    email: user.email, 
+    sessionId: sessionId 
+  }));
 
   alert('Login feito com sucesso!');
   // redireciona para sistema-com-historico.html depois do login

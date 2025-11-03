@@ -400,7 +400,6 @@
     <div class="header">
       <button id="logoutBtn" class="logout-btn">Sair</button>
       <h1>💡 Light Control Hub</h1>
-      <p>Sistema Inteligente com Histórico</p>
       <p id="deviceInfo" style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;"></p>
     </div>
 
@@ -475,34 +474,27 @@
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
     // Verifica se todos os dados necessários existem
-    if (!authToken || !userData.userId || !userData.email || !userData.sessionId) {
+    if (!authToken || !userData.userId || !userData.email) {
+      window.location.href = 'index.html';
       localStorage.clear(); // Limpa dados corrompidos
       alert('Sessão inválida! Faça login novamente.');
-      window.location.href = 'index.html';
       throw new Error('Acesso negado');
     }
 
     // Gera hash único baseado no userId para isolamento
     const currentUserId = userData.userId;
     const currentUserEmail = userData.email;
-    const sessionId = userData.sessionId;
+    const sessionId = userData.sessionId || 'session_' + Date.now();
     const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
     
-    // Validação de sessão no Firebase
+    // Validação de sessão simplificada
     async function validateSession() {
-      try {
-        const sessionRef = ref(db, `sessions/${sessionId}`);
-        const sessionSnap = await get(sessionRef);
-        const sessionData = sessionSnap.val();
-        
-        if (!sessionData || sessionData.userId !== currentUserId || sessionData.expired) {
-          throw new Error('Sessão expirada');
-        }
-      } catch (error) {
+      // Verificação básica de autenticação
+      if (!authToken || !currentUserId) {
         localStorage.clear();
         alert('Sessão expirada! Faça login novamente.');
         window.location.href = 'index.html';
-        throw error;
+        throw new Error('Sessão inválida');
       }
     }
     
@@ -533,7 +525,7 @@
     document.getElementById('lightToggle').addEventListener('click', toggleLight);
     document.getElementById('showHistory').addEventListener('click', toggleHistoryView);
     document.getElementById('showStats').addEventListener('click', toggleStatsView);
-    document.getElementById('refreshHistory').addEventListener('click', loadRecentHistory);
+    document.getElementById('refreshHistory').addEventListener('click', refreshAll);
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
     // === Função principal: ligar/desligar lâmpada ===
@@ -601,6 +593,26 @@
       }
     }
 
+    // === Função para atualizar tudo ===
+    async function refreshAll() {
+      const btn = document.getElementById('refreshHistory');
+      btn.disabled = true;
+      btn.textContent = '🔄 Atualizando...';
+      
+      try {
+        await loadRecentHistory();
+        await loadStatistics();
+        document.getElementById('lastUpdated').textContent = 
+          `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+        showSuccessMessage('📊 Dados atualizados!');
+      } catch (error) {
+        showSuccessMessage('❌ Erro ao atualizar');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Atualizar';
+      }
+    }
+
     // === Carrega histórico do Firebase ===
     async function loadRecentHistory() {
       await validateSession();
@@ -608,18 +620,18 @@
       const historyContainer = document.getElementById('historyList');
       historyContainer.innerHTML = '<p class="no-history">Carregando histórico...</p>';
 
-      onValue(historyRef, (snapshot) => {
-        const data = snapshot.val();
-        if (!data) {
-          historyContainer.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
-          return;
-        }
+      const snapshot = await get(historyRef);
+      const data = snapshot.val();
+      if (!data) {
+        historyContainer.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
+        return;
+      }
 
-        const historyArray = Object.values(data)
-          .sort((a, b) => b.timestamp - a.timestamp)
-          .slice(0, 5);
+      const historyArray = Object.values(data)
+        .sort((a, b) => b.timestamp - a.timestamp)
+        .slice(0, 5);
 
-        const html = historyArray.map(item => `
+      const html = historyArray.map(item => `
         <div class="history-item ${item.toState}">
           <div class="history-icon">${item.toState === 'on' ? '💡' : '🌙'}</div>
           <div class="history-details">
@@ -629,8 +641,7 @@
         </div>
       `).join('');
 
-        historyContainer.innerHTML = html;
-      });
+      historyContainer.innerHTML = html;
     }
 
     // === Funções auxiliares ===
@@ -667,7 +678,7 @@
     async function loadStatistics() {
       await validateSession();
       const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
-      onValue(historyRef, (snapshot) => {
+      const snapshot = await get(historyRef);
         const data = snapshot.val();
         if (!data) {
           document.getElementById('totalTime').textContent = '0h 0m';
@@ -741,7 +752,6 @@
           peakHour !== '0' || hourCounts[peakHour] ? `${peakHour.padStart(2, '0')}:00` : '--:--';
         document.getElementById('monthlyConsumption').textContent = consumoMensalKWh.toFixed(6);
         document.getElementById('weeklyConsumption').textContent = consumoSemanalKWh.toFixed(6);
-      });
     }
 
     function showSuccessMessage(msg) {
