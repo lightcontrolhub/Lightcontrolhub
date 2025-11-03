@@ -469,16 +469,14 @@
   </div>
 
   <script type="module">
-    // Validação rigorosa de autenticação
+    // Validação básica de autenticação
     const authToken = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
-    // Verifica se todos os dados necessários existem
-    if (!authToken || !userData.userId || !userData.email) {
+    // Verifica apenas se tem dados básicos
+    if (!authToken || !userData.userId) {
       window.location.href = 'index.html';
-      localStorage.clear(); // Limpa dados corrompidos
-      alert('Sessão inválida! Faça login novamente.');
-      throw new Error('Acesso negado');
+      return;
     }
 
     // Gera hash único baseado no userId para isolamento
@@ -487,16 +485,7 @@
     const sessionId = userData.sessionId || 'session_' + Date.now();
     const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
     
-    // Validação de sessão simplificada
-    async function validateSession() {
-      // Verificação básica de autenticação
-      if (!authToken || !currentUserId) {
-        localStorage.clear();
-        alert('Sessão expirada! Faça login novamente.');
-        window.location.href = 'index.html';
-        throw new Error('Sessão inválida');
-      }
-    }
+
     
     // Importa o Firebase
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
@@ -561,9 +550,6 @@
           durationFormatted
         };
 
-        // Valida sessão antes de qualquer operação
-        await validateSession();
-        
         // Controla o LED virtual do usuário (isolado por hash)
         const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
         console.log('Enviando comando para Firebase:', devicePath, '=', newState);
@@ -615,7 +601,6 @@
 
     // === Carrega histórico do Firebase ===
     async function loadRecentHistory() {
-      await validateSession();
       const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
       const historyContainer = document.getElementById('historyList');
       historyContainer.innerHTML = '<p class="no-history">Carregando histórico...</p>';
@@ -676,7 +661,6 @@
 
 
     async function loadStatistics() {
-      await validateSession();
       const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
       const snapshot = await get(historyRef);
         const data = snapshot.val();
@@ -787,7 +771,6 @@
     // Inicialização
     // Verifica estado atual do LED no Firebase
     async function checkLedStatus() {
-      await validateSession();
       const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
       console.log('Verificando estado do LED do usuário em:', devicePath);
 
