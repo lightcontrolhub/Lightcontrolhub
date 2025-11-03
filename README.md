@@ -106,10 +106,10 @@ devices/
 - Performance otimizada
 
 
-Equipe formada por:
-Alice Cristina Silva
-Anna Flávia Rosa Araújo
-André Borsato Pimenta
-André Filipe Gomes Vieira
-Breno Sales Drumond
-Pedro Arthur Silva Senra
+🤝👥 Equipe formada por:
+-Alice Cristina Silva
+-Anna Flávia Rosa Araújo
+-André Borsato Pimenta
+-André Filipe Gomes Vieira
+-Breno Sales Drumond
+-Pedro Arthur Silva Senra
