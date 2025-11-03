@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Firebase</title>
+</head>
+<body>
+    <h1>Teste Firebase</h1>
+    <button onclick="testarEscrita()">Testar Escrita</button>
+    <button onclick="testarLeitura()">Testar Leitura</button>
+    <div id="resultado"></div>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
+            authDomain: "teste-9142b.firebaseapp.com",
+            databaseURL: "https://teste-9142b-default-rtdb.firebaseio.com",
+            projectId: "teste-9142b",
+            storageBucket: "teste-9142b.appspot.com",
+            messagingSenderId: "758452370683",
+            appId: "1:758452370683:web:b77f3d0989725c51cb045e"
+        };
+
+        // Teste direto com fetch
+        async function testarEscrita() {
+            try {
+                const url = 'https://teste-9142b-default-rtdb.firebaseio.com/devices/dispositivo-do-breno/config/led13Mode.json';
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify('on')
+                });
+                
+                const result = await response.text();
+                document.getElementById('resultado').innerHTML = `Escrita: ${response.status} - ${result}`;
+                console.log('Escrita:', response.status, result);
+            } catch (error) {
+                document.getElementById('resultado').innerHTML = `Erro: ${error.message}`;
+                console.error('Erro:', error);
+            }
+        }
+
+        async function testarLeitura() {
+            try {
+                const url = 'https://teste-9142b-default-rtdb.firebaseio.com/devices/dispositivo-do-breno/config/led13Mode.json';
+                const response = await fetch(url);
+                const result = await response.text();
+                document.getElementById('resultado').innerHTML = `Leitura: ${response.status} - ${result}`;
+                console.log('Leitura:', response.status, result);
+            } catch (error) {
+                document.getElementById('resultado').innerHTML = `Erro: ${error.message}`;
+                console.error('Erro:', error);
+            }
+        }
+    </script>
+</body>
+</html>

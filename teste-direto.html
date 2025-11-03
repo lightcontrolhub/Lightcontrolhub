@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Direto Firebase</title>
+</head>
+<body>
+    <h1>Teste Direto - Mesmos Caminhos do Arduino</h1>
+    <button onclick="ligar()">LIGAR</button>
+    <button onclick="desligar()">DESLIGAR</button>
+    <button onclick="status()">STATUS</button>
+    <div id="result"></div>
+
+    <script>
+        const baseUrl = 'https://teste-9142b-default-rtdb.firebaseio.com';
+        
+        async function ligar() {
+            try {
+                // Config path - mesmo que o Arduino usa
+                const configUrl = baseUrl + '/devices/dispositivo-do-breno/config/led13Mode.json';
+                const statusUrl = baseUrl + '/devices/dispositivo-do-breno/status/led13Mode.json';
+                
+                // Envia "on" para config
+                const configResponse = await fetch(configUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify('on')
+                });
+                
+                // Envia "ligado" para status
+                const statusResponse = await fetch(statusUrl, {
+                    method: 'PUT', 
+                    body: JSON.stringify('ligado')
+                });
+                
+                document.getElementById('result').innerHTML = 
+                    `Config: ${configResponse.status}, Status: ${statusResponse.status}`;
+                    
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Erro: ' + error.message;
+            }
+        }
+        
+        async function desligar() {
+            try {
+                const configUrl = baseUrl + '/devices/dispositivo-do-breno/config/led13Mode.json';
+                const statusUrl = baseUrl + '/devices/dispositivo-do-breno/status/led13Mode.json';
+                
+                const configResponse = await fetch(configUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify('off')
+                });
+                
+                const statusResponse = await fetch(statusUrl, {
+                    method: 'PUT',
+                    body: JSON.stringify('desligado')
+                });
+                
+                document.getElementById('result').innerHTML = 
+                    `Config: ${configResponse.status}, Status: ${statusResponse.status}`;
+                    
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Erro: ' + error.message;
+            }
+        }
+        
+        async function status() {
+            try {
+                const configUrl = baseUrl + '/devices/dispositivo-do-breno/config/led13Mode.json';
+                const response = await fetch(configUrl);
+                const data = await response.text();
+                
+                document.getElementById('result').innerHTML = `Status atual: ${data}`;
+                
+            } catch (error) {
+                document.getElementById('result').innerHTML = 'Erro: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

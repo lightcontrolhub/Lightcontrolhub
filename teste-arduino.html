@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste Arduino</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; font-size: 16px; }
+        .on { background: #4CAF50; color: white; }
+        .off { background: #f44336; color: white; }
+        #status { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Teste Direto Arduino</h1>
+    <button onclick="ligarLed()" class="on">LIGAR LED</button>
+    <button onclick="desligarLed()" class="off">DESLIGAR LED</button>
+    <button onclick="verificarStatus()">VERIFICAR STATUS</button>
+    
+    <div id="status">Status: Aguardando...</div>
+    <div id="log"></div>
+
+    <script>
+        const firebaseUrl = 'https://teste-9142b-default-rtdb.firebaseio.com';
+        const devicePath = '/devices/dispositivo-do-breno/config/led13Mode.json';
+        
+        function log(msg) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML = `<p>${new Date().toLocaleTimeString()}: ${msg}</p>` + logDiv.innerHTML;
+        }
+
+        async function ligarLed() {
+            try {
+                log('Enviando comando LIGAR...');
+                const response = await fetch(firebaseUrl + devicePath, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify('on')
+                });
+                
+                if (response.ok) {
+                    log('✅ Comando LIGAR enviado com sucesso!');
+                    document.getElementById('status').innerHTML = 'Status: <strong style="color: green;">LIGADO</strong>';
+                } else {
+                    log('❌ Erro ao enviar comando LIGAR');
+                }
+            } catch (error) {
+                log('❌ Erro: ' + error.message);
+            }
+        }
+
+        async function desligarLed() {
+            try {
+                log('Enviando comando DESLIGAR...');
+                const response = await fetch(firebaseUrl + devicePath, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify('off')
+                });
+                
+                if (response.ok) {
+                    log('✅ Comando DESLIGAR enviado com sucesso!');
+                    document.getElementById('status').innerHTML = 'Status: <strong style="color: red;">DESLIGADO</strong>';
+                } else {
+                    log('❌ Erro ao enviar comando DESLIGAR');
+                }
+            } catch (error) {
+                log('❌ Erro: ' + error.message);
+            }
+        }
+
+        async function verificarStatus() {
+            try {
+                log('Verificando status...');
+                const response = await fetch(firebaseUrl + devicePath);
+                const status = await response.text();
+                
+                log('Status atual: ' + status);
+                const isOn = status.includes('on');
+                document.getElementById('status').innerHTML = 
+                    `Status: <strong style="color: ${isOn ? 'green' : 'red'};">${isOn ? 'LIGADO' : 'DESLIGADO'}</strong>`;
+            } catch (error) {
+                log('❌ Erro ao verificar status: ' + error.message);
+            }
+        }
+
+        // Verificar status inicial
+        verificarStatus();
+    </script>
+</body>
+</html>

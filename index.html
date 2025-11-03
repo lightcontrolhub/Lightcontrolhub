@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="formulario.css">
+  <style>
+    .btn-reset {
+      width: 100%;
+      padding: 15px;
+      margin: 10px 0;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      background: transparent;
+      color: #667eea;
+      border: 2px solid #667eea;
+      transition: all 0.3s ease;
+    }
+    .btn-reset:hover {
+      background: #667eea;
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+        <div class="login-box">
+            <h1>Login</h1>
+
+            <form action="/login" method="post">
+              
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="seu@email.com" required>
+
+                <label for="senha">Senha:</label>
+                <input type="password" id="senha" name="senha" placeholder="********" required>
+
+                <button type="submit" class="btn-entrar">Entrar</button>
+                <button type="button" class="btn-reset" onclick="window.location.href='redefinir.html'">Esqueci a senha</button>
+            </form>
+
+            <button class="btn-criar">Criar Conta</button>
+        </div>
+    </div>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  <script src="login.js"></script>
+  <!--comentario-->
+</body>
+</html>
