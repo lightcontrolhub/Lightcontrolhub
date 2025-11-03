@@ -284,114 +284,6 @@
       padding: 10px 20px;
       border-radius: 25px;
     }
-
-    /* Responsividade */
-    @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-      
-      .container {
-        margin: 0;
-        border-radius: 10px;
-      }
-      
-      .header {
-        padding: 20px 15px;
-      }
-      
-      .header h1 {
-        font-size: 2em;
-      }
-      
-      .main-content {
-        padding: 20px 15px;
-      }
-      
-      .light-icon {
-        font-size: 4em;
-      }
-      
-      .status-text {
-        font-size: 1.2em;
-      }
-      
-      .controls {
-        flex-direction: column;
-        gap: 10px;
-      }
-      
-      .btn {
-        width: 100%;
-        margin: 5px 0;
-      }
-      
-      .stats-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
-      
-      .stat-card {
-        padding: 20px;
-      }
-      
-      .stat-icon {
-        font-size: 2em;
-      }
-      
-      .stat-value {
-        font-size: 1.5em;
-      }
-      
-      .history-item {
-        padding: 10px;
-        flex-direction: column;
-        text-align: center;
-      }
-      
-      .history-icon {
-        margin-right: 0;
-        margin-bottom: 10px;
-      }
-      
-      .logout-btn {
-        position: static;
-        width: 100%;
-        margin-bottom: 15px;
-      }
-      
-      .header {
-        position: relative;
-      }
-    }
-    
-    @media (max-width: 480px) {
-      .header h1 {
-        font-size: 1.8em;
-      }
-      
-      .light-icon {
-        font-size: 3.5em;
-      }
-      
-      .btn {
-        padding: 12px 20px;
-        font-size: 1em;
-      }
-      
-      .stats-grid {
-        gap: 10px;
-      }
-      
-      .stat-card {
-        padding: 15px;
-      }
-      
-      .history-panel,
-      .stats-panel {
-        padding: 20px 15px;
-      }
-    }
   </style>
 </head>
 
@@ -400,6 +292,7 @@
     <div class="header">
       <button id="logoutBtn" class="logout-btn">Sair</button>
       <h1>💡 Light Control Hub</h1>
+      <p>Sistema Inteligente com Histórico</p>
       <p id="deviceInfo" style="font-size: 0.9em; opacity: 0.8; margin-top: 10px;"></p>
     </div>
 
@@ -473,28 +366,20 @@
     const authToken = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
-    // Verifica apenas se tem dados básicos
-    if (!authToken || !userData || !userData.userId) {
-      console.log('Redirecionando para login - dados ausentes');
+    if (!authToken || !userData.userId) {
       window.location.href = 'index.html';
-      return;
+      throw new Error('Não autenticado');
     }
-    
-    console.log('Usuário autenticado:', userData);
 
-    // Gera hash único baseado no userId para isolamento
+    // Dados do usuário
     const currentUserId = userData.userId;
     const currentUserEmail = userData.email || 'user@example.com';
-    const sessionId = userData.sessionId || 'session_' + Date.now();
     const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
     
-
-    
     // Importa o Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-    // 🔥 Configuração do seu projeto Firebase - Light Control Hub
     const firebaseConfig = {
       apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
       authDomain: "teste-9142b.firebaseapp.com",
@@ -505,22 +390,19 @@
       appId: "1:758452370683:web:b77f3d0989725c51cb045e"
     };
 
-    // Inicializa Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // Estado inicial
     let isLightOn = false;
     let currentSession = null;
 
-    // Ações de interface
+    // Event listeners
     document.getElementById('lightToggle').addEventListener('click', toggleLight);
     document.getElementById('showHistory').addEventListener('click', toggleHistoryView);
     document.getElementById('showStats').addEventListener('click', toggleStatsView);
     document.getElementById('refreshHistory').addEventListener('click', refreshAll);
     document.getElementById('logoutBtn').addEventListener('click', logout);
 
-    // === Função principal: ligar/desligar lâmpada ===
     async function toggleLight() {
       const btn = document.getElementById('lightToggle');
       const icon = document.getElementById('lightIcon');
@@ -534,14 +416,12 @@
         const previousState = isLightOn ? 'on' : 'off';
         const newState = isLightOn ? 'off' : 'on';
 
-        // Se estava ligada, calcula tempo de duração
         let duration = null, durationFormatted = null;
         if (currentSession && newState === 'off') {
           duration = Date.now() - currentSession.startTime;
           durationFormatted = formatDuration(duration);
         }
 
-        // Cria registro no Firebase
         const change = {
           lightId: userDeviceId,
           fromState: previousState,
@@ -553,16 +433,10 @@
           durationFormatted
         };
 
-        // Controla o LED virtual do usuário (isolado por hash)
         const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
-        console.log('Enviando comando para Firebase:', devicePath, '=', newState);
         await set(ref(db, devicePath), newState);
-        console.log('Comando enviado para dispositivo do usuário!');
-
-        // Salva no histórico privado do usuário
         await push(ref(db, `private_users/${userDeviceId}/historico`), change);
 
-        // Atualiza interface
         isLightOn = newState === 'on';
         icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
         status.textContent = isLightOn ? 'Ligada' : 'Desligada';
@@ -582,7 +456,6 @@
       }
     }
 
-    // === Função para atualizar tudo ===
     async function refreshAll() {
       const btn = document.getElementById('refreshHistory');
       btn.disabled = true;
@@ -602,7 +475,6 @@
       }
     }
 
-    // === Carrega histórico do Firebase ===
     async function loadRecentHistory() {
       const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
       const historyContainer = document.getElementById('historyList');
@@ -632,7 +504,6 @@
       historyContainer.innerHTML = html;
     }
 
-    // === Funções auxiliares ===
     function toggleHistoryView() {
       const panel = document.getElementById('historyPanel');
       const statsPanel = document.getElementById('statsPanel');
@@ -651,94 +522,70 @@
       if (!isVisible) loadStatistics();
     }
 
-    function calcularConsumoLED(tempoEmMilisegundos) {
-      const potenciaLEDMegawatts = 0.00005; // 50 µW convertido para MW
-      const resistenciaOhms = 240; // Resistência típica do LED
-      
-      // Calcular tensão usando P = V²/R -> V = √(P × R)
-      const potenciaWatts = potenciaLEDMegawatts * 1000000; // MW para W
-      const tensaoVolts = Math.sqrt(potenciaWatts * resistenciaOhms);
-      
-      return tensaoVolts.toFixed(3);
-    }
-
-
     async function loadStatistics() {
       const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
       const snapshot = await get(historyRef);
-        const data = snapshot.val();
-        if (!data) {
-          document.getElementById('totalTime').textContent = '0h 0m';
-          document.getElementById('totalChanges').textContent = '0';
-          document.getElementById('efficiency').textContent = '0V';
-          document.getElementById('peakHour').textContent = '--:--';
-          document.getElementById('monthlyConsumption').textContent = '0';
-          document.getElementById('weeklyConsumption').textContent = '0';
-          return;
-        }
+      const data = snapshot.val();
+      
+      if (!data) {
+        document.getElementById('totalTime').textContent = '0h 0m';
+        document.getElementById('totalChanges').textContent = '0';
+        document.getElementById('efficiency').textContent = '0V';
+        document.getElementById('peakHour').textContent = '--:--';
+        document.getElementById('monthlyConsumption').textContent = '0';
+        document.getElementById('weeklyConsumption').textContent = '0';
+        return;
+      }
 
-        const events = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
+      const events = Object.values(data).sort((a, b) => a.timestamp - b.timestamp);
 
-        // Tempo total ligado
-        let totalOnTime = 0;
-        events.forEach(event => {
-          if (event.duration) totalOnTime += event.duration;
-        });
+      let totalOnTime = 0;
+      events.forEach(event => {
+        if (event.duration) totalOnTime += event.duration;
+      });
 
-        // Total de mudanças
-        const totalChanges = events.length;
+      const totalChanges = events.length;
 
-        // Eficiência (tempo ligado vs tempo total do período)
-        const firstEvent = events[0];
-        const lastEvent = events[events.length - 1];
-        const totalPeriod = firstEvent && lastEvent ? lastEvent.timestamp - firstEvent.timestamp : 1;
-        const efficiency = totalPeriod > 0 ? calcularConsumoLED(totalPeriod) : 0;
+      const hourCounts = {};
+      events.filter(e => e.toState === 'on').forEach(event => {
+        const hour = new Date(event.timestamp).getHours();
+        hourCounts[hour] = (hourCounts[hour] || 0) + 1;
+      });
 
-        // Horário mais usado
-        const hourCounts = {};
-        events.filter(e => e.toState === 'on').forEach(event => {
-          const hour = new Date(event.timestamp).getHours();
-          hourCounts[hour] = (hourCounts[hour] || 0) + 1;
-        });
+      const peakHour = Object.keys(hourCounts).reduce((a, b) =>
+        hourCounts[a] > hourCounts[b] ? a : b, '0');
 
-        const peakHour = Object.keys(hourCounts).reduce((a, b) =>
-          hourCounts[a] > hourCounts[b] ? a : b, '0');
+      const now = new Date();
+      const currentMonth = now.getMonth();
+      const currentYear = now.getFullYear();
+      
+      const monthlyOnTime = events
+        .filter(event => {
+          const eventDate = new Date(event.timestamp);
+          return eventDate.getMonth() === currentMonth && 
+                 eventDate.getFullYear() === currentYear && 
+                 event.duration;
+        })
+        .reduce((total, event) => total + event.duration, 0);
+      
+      const sevenDaysAgo = now.getTime() - (7 * 24 * 60 * 60 * 1000);
+      const weeklyOnTime = events
+        .filter(event => {
+          return event.timestamp >= sevenDaysAgo && event.duration;
+        })
+        .reduce((total, event) => total + event.duration, 0);
+      
+      const potenciaLEDWatts = 0.05;
+      const consumoMensalKWh = (potenciaLEDWatts * (monthlyOnTime / (1000 * 60 * 60))) / 1000;
+      const consumoSemanalKWh = (potenciaLEDWatts * (weeklyOnTime / (1000 * 60 * 60))) / 1000;
 
-        // Consumo mensal e semanal
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        // Cálculo do consumo mensal
-        const monthlyOnTime = events
-          .filter(event => {
-            const eventDate = new Date(event.timestamp);
-            return eventDate.getMonth() === currentMonth && 
-                   eventDate.getFullYear() === currentYear && 
-                   event.duration;
-          })
-          .reduce((total, event) => total + event.duration, 0);
-        
-        // Cálculo do consumo semanal (últimos 7 dias)
-        const sevenDaysAgo = now.getTime() - (7 * 24 * 60 * 60 * 1000);
-        const weeklyOnTime = events
-          .filter(event => {
-            return event.timestamp >= sevenDaysAgo && event.duration;
-          })
-          .reduce((total, event) => total + event.duration, 0);
-        
-        const potenciaLEDWatts = 0.05; // 50 µW
-        const consumoMensalKWh = (potenciaLEDWatts * (monthlyOnTime / (1000 * 60 * 60))) / 1000;
-        const consumoSemanalKWh = (potenciaLEDWatts * (weeklyOnTime / (1000 * 60 * 60))) / 1000;
-
-        // Atualiza interface
-        document.getElementById('totalTime').textContent = formatDuration(totalOnTime);
-        document.getElementById('totalChanges').textContent = totalChanges;
-        document.getElementById('efficiency').textContent = efficiency + 'V';
-        document.getElementById('peakHour').textContent =
-          peakHour !== '0' || hourCounts[peakHour] ? `${peakHour.padStart(2, '0')}:00` : '--:--';
-        document.getElementById('monthlyConsumption').textContent = consumoMensalKWh.toFixed(6);
-        document.getElementById('weeklyConsumption').textContent = consumoSemanalKWh.toFixed(6);
+      document.getElementById('totalTime').textContent = formatDuration(totalOnTime);
+      document.getElementById('totalChanges').textContent = totalChanges;
+      document.getElementById('efficiency').textContent = '3.464V';
+      document.getElementById('peakHour').textContent =
+        peakHour !== '0' || hourCounts[peakHour] ? `${peakHour.padStart(2, '0')}:00` : '--:--';
+      document.getElementById('monthlyConsumption').textContent = consumoMensalKWh.toFixed(6);
+      document.getElementById('weeklyConsumption').textContent = consumoSemanalKWh.toFixed(6);
     }
 
     function showSuccessMessage(msg) {
@@ -758,30 +605,20 @@
       return `${s}s`;
     }
 
-
     function logout() {
       if (confirm('Deseja realmente sair do sistema?')) {
-        // Limpa todos os dados de autenticação
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
         localStorage.removeItem('verificationCode');
-
-        // Redireciona para login
         window.location.href = 'index.html';
       }
     }
 
-    // Inicialização
-    // Verifica estado atual do LED no Firebase
     async function checkLedStatus() {
       const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
-      console.log('Verificando estado do LED do usuário em:', devicePath);
 
       onValue(ref(db, devicePath), (snapshot) => {
         const ledState = snapshot.val();
-        console.log('Estado atual do LED do usuário no Firebase:', ledState);
-
-        // Define estado padrão como 'off' se não existir
         isLightOn = ledState === 'on';
         const icon = document.getElementById('lightIcon');
         const status = document.getElementById('statusText');
@@ -792,7 +629,6 @@
         btn.textContent = isLightOn ? 'Desligar' : 'Ligar';
         btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
         
-        // Se não existe estado, inicializa como 'off'
         if (ledState === null) {
           set(ref(db, devicePath), 'off');
         }
@@ -804,7 +640,6 @@
     document.getElementById('lastUpdated').textContent =
       `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
     
-    // Mostra informações do dispositivo do usuário
     document.getElementById('deviceInfo').textContent = 
       `Dispositivo: ${userDeviceId} | Usuário: ${currentUserEmail}`;
   </script>
