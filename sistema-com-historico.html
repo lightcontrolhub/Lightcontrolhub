@@ -474,14 +474,17 @@
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
     // Verifica apenas se tem dados básicos
-    if (!authToken || !userData.userId) {
+    if (!authToken || !userData || !userData.userId) {
+      console.log('Redirecionando para login - dados ausentes');
       window.location.href = 'index.html';
       return;
     }
+    
+    console.log('Usuário autenticado:', userData);
 
     // Gera hash único baseado no userId para isolamento
     const currentUserId = userData.userId;
-    const currentUserEmail = userData.email;
+    const currentUserEmail = userData.email || 'user@example.com';
     const sessionId = userData.sessionId || 'session_' + Date.now();
     const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
     
