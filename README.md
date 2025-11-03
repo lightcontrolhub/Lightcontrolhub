@@ -39,16 +39,30 @@ LightControlHub-MVC/
 - **Arquitetura**: Model-View-Controller (MVC)
 - **Estilo**: CSS Grid, Flexbox, Gradientes
 
-## 🔧 Configuração
+Casos de Uso
+1. Autenticação (AuthService/AuthAPI)
 
-1. **Clone o projeto**
-2. **Configure a API Backend**:
-   - Copie `api/config.example.php` para `api/config.php`
-   - Edite `api/config.php` com suas credenciais Firebase
-   - Configure o Realtime Database no Firebase
-3. **Execute em servidor web** com suporte PHP
-   - XAMPP, WAMP, ou servidor Apache/Nginx
-   - **IMPORTANTE**: Nunca commite o arquivo `config.php`!
+1.Registrar novo usuário
+2.Fazer login
+3.Enviar código de verificação
+4.Verificar código
+5.Verificar token
+6.Fazer logout
+7.Resetar senha
+
+2. Controle de Luz (LightController/LightService)
+
+8. Ligar luz
+9. Desligar luz
+10. Verificar estado atual
+11. Monitorar mudanças de estado (polling)
+
+3. Operações com Filtros
+
+12. Validar operação antes de executar
+13. Cachear resultados de operações
+14. Verificar autenticação para operações
+15. Registrar log de operações
 
 ## 📱 Como Usar
 
@@ -91,14 +105,11 @@ devices/
 - Responsividade completa
 - Performance otimizada
 
-## 🚀 Deploy
 
-Para produção:
-1. Configure as regras do Firebase
-2. Otimize os assets
-3. Configure HTTPS
-4. Teste em diferentes dispositivos
-
----
-
-**Desenvolvido com ❤️ para controle inteligente de iluminação**
+Equipe formada por:
+Alice Cristina Silva
+Anna Flávia Rosa Araújo
+André Borsato Pimenta
+André Filipe Gomes Vieira
+Breno Sales Drumond
+Pedro Arthur Silva Senra
