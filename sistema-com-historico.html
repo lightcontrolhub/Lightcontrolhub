@@ -361,7 +361,10 @@
     </div>
   </div>
 
-  <script type="module">
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+  
+  <script>
     // Validação básica de autenticação
     const authToken = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
@@ -375,10 +378,6 @@
     const currentUserId = userData.userId;
     const currentUserEmail = userData.email || 'user@example.com';
     const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
-    
-    // Importa o Firebase
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, set, get } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
@@ -390,8 +389,8 @@
       appId: "1:758452370683:web:b77f3d0989725c51cb045e"
     };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
 
     let isLightOn = false;
     let currentSession = null;
@@ -434,8 +433,8 @@
         };
 
         const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
-        await set(ref(db, devicePath), newState);
-        await push(ref(db, `private_users/${userDeviceId}/historico`), change);
+        await db.ref(devicePath).set(newState);
+        await db.ref(`private_users/${userDeviceId}/historico`).push(change);
 
         isLightOn = newState === 'on';
         icon.className = 'light-icon ' + (isLightOn ? 'on' : 'off');
@@ -476,11 +475,11 @@
     }
 
     async function loadRecentHistory() {
-      const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
+      const historyRef = db.ref(`private_users/${userDeviceId}/historico`);
       const historyContainer = document.getElementById('historyList');
       historyContainer.innerHTML = '<p class="no-history">Carregando histórico...</p>';
 
-      const snapshot = await get(historyRef);
+      const snapshot = await historyRef.once('value');
       const data = snapshot.val();
       if (!data) {
         historyContainer.innerHTML = '<p class="no-history">Nenhum histórico encontrado</p>';
@@ -523,8 +522,8 @@
     }
 
     async function loadStatistics() {
-      const historyRef = ref(db, `private_users/${userDeviceId}/historico`);
-      const snapshot = await get(historyRef);
+      const historyRef = db.ref(`private_users/${userDeviceId}/historico`);
+      const snapshot = await historyRef.once('value');
       const data = snapshot.val();
       
       if (!data) {
@@ -617,7 +616,7 @@
     async function checkLedStatus() {
       const devicePath = `private_devices/${userDeviceId}/config/led13Mode`;
 
-      onValue(ref(db, devicePath), (snapshot) => {
+      db.ref(devicePath).on('value', (snapshot) => {
         const ledState = snapshot.val();
         isLightOn = ledState === 'on';
         const icon = document.getElementById('lightIcon');
@@ -630,7 +629,7 @@
         btn.className = 'btn toggle-btn ' + (isLightOn ? 'on' : 'off');
         
         if (ledState === null) {
-          set(ref(db, devicePath), 'off');
+          db.ref(devicePath).set('off');
         }
       });
     }

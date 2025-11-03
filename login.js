@@ -1,6 +1,4 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, update, ref } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-import { getAuth, signInWithEmailAndPassword, signOut, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+// Firebase será carregado via script tags no HTML
 
 const firebaseConfig = {
   apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
@@ -12,9 +10,9 @@ const firebaseConfig = {
   appId: "1:758452370683:web:b77f3d0989725c51cb045e"
 };
 
-const app = initializeApp(firebaseConfig);
-const database = getDatabase(app);
-const auth = getAuth();
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+const auth = firebase.auth();
 
 const loginBtn = document.querySelector('.btn-entrar');
 const signupBtn = document.querySelector('.btn-criar');
@@ -29,18 +27,18 @@ e.preventDefault();
 const email = document.getElementById('email').value;
 const password = document.getElementById('senha').value;
 
-signInWithEmailAndPassword(auth, email, password)
+auth.signInWithEmailAndPassword(email, password)
 .then((userCredential) => {
   const user = userCredential.user;
 
   if (!user.emailVerified) {
     alert("Você precisa verificar seu e-mail antes de fazer login.");
-    signOut(auth);
+    auth.signOut();
     return;
   }
 
   const dt = new Date();
-  update(ref(database, 'users/' + user.uid), {
+  database.ref('users/' + user.uid).update({
     last_login: dt
   });
 
@@ -65,7 +63,7 @@ signInWithEmailAndPassword(auth, email, password)
 window.resetPassword = function() {
   const email = prompt('Digite seu email para resetar a senha:');
   if (email) {
-    sendPasswordResetEmail(auth, email)
+    auth.sendPasswordResetEmail(email)
       .then(() => {
         alert('Email de recuperação enviado! Verifique sua caixa de entrada.');
       })
