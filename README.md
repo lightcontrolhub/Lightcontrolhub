@@ -39,7 +39,7 @@ LightControlHub-MVC/
 - **Arquitetura**: Model-View-Controller (MVC)
 - **Estilo**: CSS Grid, Flexbox, Gradientes
 
-Casos de Uso
+## Casos de Uso
 1. Autenticação (AuthService/AuthAPI)
 
 1.Registrar novo usuário
@@ -57,9 +57,7 @@ Casos de Uso
 10. Verificar estado atual
 11. Monitorar mudanças de estado (polling)
 
-
-
-    3. Operações com Filtros
+ 3. Operações com Filtros
 
 12. Validar operação antes de executar
 13. Cachear resultados de operações
