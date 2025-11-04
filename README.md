@@ -56,6 +56,9 @@ Casos de Uso
 9. Desligar luz
 10. Verificar estado atual
 11. Monitorar mudanças de estado (polling)
+
+
+
     3. Operações com Filtros
 
 12. Validar operação antes de executar
