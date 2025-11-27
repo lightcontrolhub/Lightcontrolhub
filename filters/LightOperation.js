@@ -1,6 +1,6 @@
 import FilterComponent from './FilterComponent.js';
 
-// Componente concreto - operação básica de luz
+
 class LightOperation extends FilterComponent {
     constructor(lightService) {
         super();

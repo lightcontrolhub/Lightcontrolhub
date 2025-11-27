@@ -1,6 +1,6 @@
 import BaseFilter from './BaseFilter.js';
 
-// Filtro de autenticação
+
 class AuthFilter extends BaseFilter {
     constructor(component, authService) {
         super(component);

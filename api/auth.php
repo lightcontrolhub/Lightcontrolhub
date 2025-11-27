@@ -34,10 +34,10 @@ class AuthAPI {
         return self::$instance;
     }
     
-    // Previne clonagem do objeto
+
     private function __clone() {}
     
-    // Previne deserialização
+
     private function __wakeup() {}
     
     public function handleRequest() {
@@ -127,10 +127,10 @@ class AuthAPI {
     }
     
     private function sendVerificationCode($email) {
-        // Gera código de 6 dígitos
+
         $code = sprintf('%06d', mt_rand(0, 999999));
         
-        // Salva no Firebase (expira em 5 minutos)
+
         $url = FIREBASE_URL . "/verification_codes/" . md5($email) . ".json";
         $data = json_encode([
             'code' => $code,
@@ -148,11 +148,11 @@ class AuthAPI {
         
         file_get_contents($url, false, $context);
         
-        // Em produção, enviar por email real
+
         return [
             'success' => true,
             'message' => 'Código enviado',
-            'code' => $code // REMOVER EM PRODUÇÃO
+            'code' => $code
         ];
     }
     
@@ -169,7 +169,7 @@ class AuthAPI {
             throw new Exception('Código inválido');
         }
         
-        // Remove o código usado
+
         $context = stream_context_create(['http' => ['method' => 'DELETE']]);
         file_get_contents($url, false, $context);
         

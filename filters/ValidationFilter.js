@@ -1,6 +1,6 @@
 import BaseFilter from './BaseFilter.js';
 
-// Filtro de validação
+
 class ValidationFilter extends BaseFilter {
     async execute(data) {
         if (!data || typeof data !== 'object') {

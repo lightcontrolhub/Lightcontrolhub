@@ -365,7 +365,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   
   <script>
-    // Validação básica de autenticação
+
     const authToken = localStorage.getItem('authToken');
     const userData = JSON.parse(localStorage.getItem('user') || '{}');
 
@@ -374,7 +374,7 @@
       throw new Error('Não autenticado');
     }
 
-    // Dados do usuário
+
     const currentUserId = userData.userId;
     const currentUserEmail = userData.email || 'user@example.com';
     const userDeviceId = `user_${btoa(currentUserId).replace(/[^a-zA-Z0-9]/g, '')}`;
@@ -395,7 +395,7 @@
     let isLightOn = false;
     let currentSession = null;
 
-    // Event listeners
+
     document.getElementById('lightToggle').addEventListener('click', toggleLight);
     document.getElementById('showHistory').addEventListener('click', toggleHistoryView);
     document.getElementById('showStats').addEventListener('click', toggleStatsView);
@@ -432,24 +432,24 @@
           durationFormatted
         };
 
-        // Usa os mesmos caminhos do Arduino
+
         const configUrl = 'https://teste-9142b-default-rtdb.firebaseio.com/devices/dispositivo-do-breno/config/led13Mode.json';
         const statusUrl = 'https://teste-9142b-default-rtdb.firebaseio.com/devices/dispositivo-do-breno/status/led13Mode.json';
         const statusValue = newState === 'on' ? 'ligado' : 'desligado';
         
-        // Envia para config (Arduino lê daqui)
+
         await fetch(configUrl, {
           method: 'PUT',
           body: JSON.stringify(newState)
         });
         
-        // Envia para status
+
         await fetch(statusUrl, {
           method: 'PUT', 
           body: JSON.stringify(statusValue)
         });
         
-        // Salva histórico no caminho do usuário
+
         await db.ref(`private_users/${userDeviceId}/historico`).push(change);
 
         isLightOn = newState === 'on';
@@ -630,7 +630,7 @@
     }
 
     async function checkLedStatus() {
-      // Monitora o mesmo caminho que o Arduino usa
+
       const devicePath = 'devices/dispositivo-do-breno/config/led13Mode';
 
       db.ref(devicePath).on('value', (snapshot) => {
@@ -651,7 +651,7 @@
       });
     }
 
-    // Inicialização
+
     checkLedStatus();
     document.getElementById('lastUpdated').textContent =
       `Última atualização: ${new Date().toLocaleString('pt-BR')}`;

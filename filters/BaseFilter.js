@@ -1,6 +1,6 @@
 import FilterComponent from './FilterComponent.js';
 
-// Decorator base
+
 class BaseFilter extends FilterComponent {
     constructor(component) {
         super();

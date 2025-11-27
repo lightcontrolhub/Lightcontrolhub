@@ -27,6 +27,41 @@
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
     }
+    
+    .terms-checkbox {
+      margin: 15px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .terms-checkbox input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: #667eea;
+    }
+    
+    .terms-checkbox label {
+      font-size: 14px;
+      color: #666;
+      line-height: 1.4;
+    }
+    
+    .terms-checkbox a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+    
+    .terms-checkbox a:hover {
+      text-decoration: underline;
+    }
+    
+    .btn-entrar:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      background: #ccc;
+    }
   </style>
 </head>
 <body>
@@ -43,7 +78,14 @@
                 <label for="senha">Senha:</label>
                 <input type="password" id="senha" name="senha" placeholder="********" required>
 
-                <button type="submit" class="btn-entrar">Entrar</button>
+                <div class="terms-checkbox">
+                    <input type="checkbox" id="acceptTerms" name="acceptTerms" required>
+                    <label for="acceptTerms">
+                        Li e aceito os <a href="termos-de-uso.html" target="_blank">termos de uso</a>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn-entrar" id="loginBtn" disabled>Entrar</button>
                 <button type="button" class="btn-reset" onclick="window.location.href='redefinir.html'">Esqueci a senha</button>
             </form>
 
@@ -54,6 +96,22 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
   <script src="login.js"></script>
-  <!--comentario-->
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const acceptTerms = document.getElementById('acceptTerms');
+      const loginBtn = document.getElementById('loginBtn');
+      
+      acceptTerms.addEventListener('change', function() {
+        loginBtn.disabled = !this.checked;
+        if (this.checked) {
+          loginBtn.style.background = '';
+          loginBtn.style.cursor = 'pointer';
+        } else {
+          loginBtn.style.background = '#ccc';
+          loginBtn.style.cursor = 'not-allowed';
+        }
+      });
+    });
+  </script>
 </body>
 </html>

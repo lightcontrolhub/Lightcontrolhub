@@ -1,4 +1,4 @@
-// Firebase será carregado via script tags no HTML
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyBtLlsM-Afp9wgrHGdHLvII2pjB8Q7uOtA",
@@ -17,7 +17,7 @@ const auth = firebase.auth();
 const loginBtn = document.querySelector('.btn-entrar');
 const signupBtn = document.querySelector('.btn-criar');
 
-// Redirecionamento para página de cadastro
+
 signupBtn.addEventListener('click', () => {
   window.location.href = 'signup.html';
 });
@@ -42,7 +42,7 @@ auth.signInWithEmailAndPassword(email, password)
     last_login: dt
   });
 
-  // Salva token de autenticação no localStorage
+
   const sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   localStorage.setItem('authToken', user.accessToken);
   localStorage.setItem('user', JSON.stringify({ 
@@ -52,14 +52,14 @@ auth.signInWithEmailAndPassword(email, password)
   }));
 
   alert('Login feito com sucesso!');
-  // redireciona para sistema-com-historico.html depois do login
+
   window.location.href = "sistema-com-historico.html";
 })
 .catch((error) => {
   alert(error.message);
 });
 
-// Função para resetar senha
+
 window.resetPassword = function() {
   const email = prompt('Digite seu email para resetar a senha:');
   if (email) {

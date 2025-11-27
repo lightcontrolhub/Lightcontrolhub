@@ -1,6 +1,6 @@
 import BaseFilter from './BaseFilter.js';
 
-// Filtro de cache
+
 class CacheFilter extends BaseFilter {
     constructor(component, ttl = 5000) {
         super(component);
